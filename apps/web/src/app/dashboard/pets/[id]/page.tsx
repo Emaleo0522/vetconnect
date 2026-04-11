@@ -39,8 +39,18 @@ import {
   Stethoscope,
   Pill,
   Plus,
+  Camera,
 } from "lucide-react";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+
+function resolveUrl(path: string | null | undefined): string | undefined {
+  if (!path) return undefined;
+  if (path.startsWith("/")) return `${API_URL}${path}`;
+  return path;
+}
 import { QRCodeSVG } from "qrcode.react";
+import { toast } from "sonner";
 import { calculateAge, speciesLabels } from "@/components/pets/pet-card";
 
 // ---------------------------------------------------------------------------
@@ -178,6 +188,7 @@ export default function PetDetailPage({
   const [loading, setLoading] = useState(true);
   const [showDelete, setShowDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   // Add medical record (vet only)
   const [showAddRecord, setShowAddRecord] = useState(false);
@@ -215,6 +226,29 @@ export default function PetDetailPage({
       router.push("/dashboard/pets");
     } catch {
       setDeleting(false);
+    }
+  }
+
+  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) return;
+    if (file.size > 5 * 1024 * 1024) return;
+
+    setUploadingPhoto(true);
+    try {
+      const result = await api.upload<{ photoUrl: string }>(
+        `/api/pets/${id}/photo`,
+        "photo",
+        file
+      );
+      setPet((prev) => prev ? { ...prev, photo: result.photoUrl } : prev);
+    } catch {
+      toast.error("Error al subir la foto");
+    } finally {
+      setUploadingPhoto(false);
+      e.target.value = "";
     }
   }
 
@@ -285,17 +319,40 @@ export default function PetDetailPage({
               <span className="sr-only">Volver</span>
             </Button>
           </Link>
-          <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-muted">
-            {pet.photo ? (
-              <img
-                src={pet.photo}
-                alt={pet.name}
-                width={80}
-                height={80}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <PawPrint className="h-10 w-10 text-muted-foreground/50" />
+          <div className="relative">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-muted">
+              {pet.photo ? (
+                <img
+                  src={resolveUrl(pet.photo)}
+                  alt={pet.name}
+                  width={80}
+                  height={80}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <PawPrint className="h-10 w-10 text-muted-foreground/50" />
+              )}
+            </div>
+            {currentUser?.role === "owner" && (
+              <label
+                htmlFor="pet-photo-upload"
+                className="absolute bottom-0 right-0 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
+                aria-label="Cambiar foto"
+              >
+                {uploadingPhoto ? (
+                  <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                ) : (
+                  <Camera className="h-3 w-3" />
+                )}
+                <input
+                  id="pet-photo-upload"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="sr-only"
+                  onChange={handlePhotoChange}
+                  disabled={uploadingPhoto}
+                />
+              </label>
             )}
           </div>
           <div>

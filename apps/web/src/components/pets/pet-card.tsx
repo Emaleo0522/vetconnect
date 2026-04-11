@@ -5,6 +5,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PawPrint } from "lucide-react";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+
+function resolveUrl(path: string | null | undefined): string | undefined {
+  if (!path) return undefined;
+  if (path.startsWith("/")) return `${API_URL}${path}`;
+  return path;
+}
+
 const speciesLabels: Record<string, string> = {
   dog: "Perro",
   cat: "Gato",
@@ -63,7 +71,7 @@ export function PetCard({
           <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted">
             {photo ? (
               <img
-                src={photo}
+                src={resolveUrl(photo)}
                 alt={name}
                 width={64}
                 height={64}

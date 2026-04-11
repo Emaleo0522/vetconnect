@@ -3,6 +3,14 @@
 import { useEffect, useState } from "react";
 import { useAuthStore, type UserRole } from "@/lib/auth";
 import { api, ApiError } from "@/lib/api";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+
+function resolveUrl(path: string | null | undefined): string | undefined {
+  if (!path) return undefined;
+  if (path.startsWith("/")) return `${API_URL}${path}`;
+  return path;
+}
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -114,12 +122,12 @@ export default function ProfilePage() {
 
     setIsUploadingAvatar(true);
     try {
-      const updated = await api.upload<ProfileData>(
+      const updated = await api.upload<{ avatarUrl: string }>(
         "/api/users/me/avatar",
         "avatar",
         file
       );
-      setProfile((prev) => prev ? { ...prev, image: updated.image } : prev);
+      setProfile((prev) => prev ? { ...prev, image: updated.avatarUrl } : prev);
       await checkSession();
       toast.success("Foto de perfil actualizada");
     } catch (err) {
@@ -223,7 +231,7 @@ export default function ProfilePage() {
               <div className="relative">
                 <Avatar className="h-20 w-20" size="lg">
                   {profile?.image && (
-                    <AvatarImage src={profile.image} alt={profile.name} />
+                    <AvatarImage src={resolveUrl(profile.image)} alt={profile.name} />
                   )}
                   <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
                     {initials}
