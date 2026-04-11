@@ -93,8 +93,6 @@ export function VetMap({ vets, className, singleVet = false }: VetMapProps) {
         maxZoom: 19,
       }).addTo(map);
 
-      const bounds = L.latLngBounds([]);
-
       for (const vet of validVets) {
         const lat = Number(vet.latitude);
         const lng = Number(vet.longitude);
@@ -112,11 +110,14 @@ export function VetMap({ vets, className, singleVet = false }: VetMapProps) {
             ${!singleVet ? `<br/><a href="/dashboard/vets/${vet.id}" style="color:#2B7A9E;font-size:12px">Ver perfil →</a>` : ""}
           </div>`,
         );
-
-        bounds.extend([lat, lng]);
       }
 
-      if (validVets.length > 1) {
+      // Solo hacer fitBounds cuando NO tenemos la ubicación del usuario.
+      // Si tenemos geolocalización, el mapa ya está centrado ahí — no mover a los vets.
+      if (!singleVet && !userCenter && validVets.length > 1) {
+        const bounds = L.latLngBounds(
+          validVets.map((v) => [Number(v.latitude), Number(v.longitude)] as [number, number]),
+        );
         map.fitBounds(bounds, { padding: [40, 40] });
       }
 
