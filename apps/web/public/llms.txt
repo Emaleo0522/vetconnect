@@ -1,0 +1,25 @@
+# VetConnect Global
+
+> Cuidamos juntos, conectamos vidas.
+
+VetConnect Global es una plataforma veterinaria integral que conecta a duenos de mascotas, veterinarios y organizaciones de rescate animal.
+
+## Funcionalidades principales
+
+- Gestion de mascotas: historial medico, cartilla vacunatoria digital, QR de identificacion
+- Directorio de veterinarios: busqueda por ubicacion con mapa interactivo, resenas verificadas
+- Rescate animal: conexion con organizaciones que cuidan animales en situacion de calle
+- Notificaciones: recordatorios de vacunas, citas y tratamientos
+- Perfiles multirol: dueno de mascota, veterinario, organizacion, administrador
+
+## Stack tecnologico
+
+- Frontend: Next.js 16 + React 19 + Tailwind CSS + shadcn/ui
+- Backend: Hono + Drizzle ORM + PostgreSQL
+- Autenticacion: Better Auth con 4 roles
+- Mobile: React Native + Expo (iOS + Android)
+
+## Contacto
+
+- Plataforma: https://vetconnect.netlify.app
+- API: REST, documentacion disponible bajo autenticacion

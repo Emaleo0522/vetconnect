@@ -195,7 +195,7 @@ export default function DashboardPage() {
             <CardContent className="flex flex-col items-center gap-3 py-8">
               <PawPrint className="h-10 w-10 text-muted-foreground/40" />
               <p className="text-sm text-muted-foreground">
-                Aun no tenss mascotas registradas.
+                Aún no tenés mascotas registradas.
               </p>
               <Link
                 href="/dashboard/pets/new"

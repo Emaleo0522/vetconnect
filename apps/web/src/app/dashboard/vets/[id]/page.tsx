@@ -7,8 +7,9 @@ import { api } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 import { StarRating } from "@/components/vets/star-rating";
 import { ScheduleTable } from "@/components/vets/schedule-table";
 import { ReviewList, type Review } from "@/components/vets/review-list";
@@ -277,35 +278,34 @@ export default function VetProfilePage() {
               {/* Contact buttons */}
               <div className="flex flex-wrap gap-2 pt-2">
                 {vet.clinicPhone && (
-                  <Button variant="outline" size="sm" asChild>
-                    <a href={`tel:${vet.clinicPhone}`}>
-                      <Phone className="mr-1.5 h-4 w-4" />
-                      Llamar
-                    </a>
-                  </Button>
+                  <a
+                    href={`tel:${vet.clinicPhone}`}
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                  >
+                    <Phone className="mr-1.5 h-4 w-4" />
+                    Llamar
+                  </a>
                 )}
                 {whatsappUrl && (
-                  <Button variant="outline" size="sm" asChild>
-                    <a
-                      href={whatsappUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <MessageCircle className="mr-1.5 h-4 w-4" />
-                      WhatsApp
-                    </a>
-                  </Button>
-                )}
-                <Button variant="outline" size="sm" asChild>
                   <a
-                    href={mapsUrl}
+                    href={whatsappUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
                   >
-                    <ExternalLink className="mr-1.5 h-4 w-4" />
-                    Google Maps
+                    <MessageCircle className="mr-1.5 h-4 w-4" />
+                    WhatsApp
                   </a>
-                </Button>
+                )}
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                >
+                  <ExternalLink className="mr-1.5 h-4 w-4" />
+                  Google Maps
+                </a>
               </div>
             </CardContent>
           </Card>

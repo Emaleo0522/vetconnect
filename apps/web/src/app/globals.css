@@ -66,7 +66,7 @@
   --popover: #FFFFFF;
   --popover-foreground: #1A2B3C;
   --primary: #2B7A9E;
-  --primary-foreground: #F0F4F8;
+  --primary-foreground: #FFFFFF;
   --secondary: #4CAF7D;
   --secondary-foreground: #FFFFFF;
   --muted: #E8ECF1;
@@ -89,7 +89,7 @@
   --sidebar: #FFFFFF;
   --sidebar-foreground: #1A2B3C;
   --sidebar-primary: #2B7A9E;
-  --sidebar-primary-foreground: #F0F4F8;
+  --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: #EBF5F9;
   --sidebar-accent-foreground: #2B7A9E;
   --sidebar-border: #DCE3EB;

@@ -1,0 +1,18 @@
+{
+  "name": "VetConnect Global",
+  "short_name": "VetConnect",
+  "description": "Plataforma veterinaria integral para duenos de mascotas, veterinarios y organizaciones de rescate animal.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2b7a9e",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["health", "lifestyle"],
+  "lang": "es"
+}

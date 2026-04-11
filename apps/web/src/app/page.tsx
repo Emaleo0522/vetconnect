@@ -99,7 +99,7 @@ function FeatureCard({
   return (
     <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card p-6 shadow-sm">
       {icon}
-      <h3 className="font-heading text-lg font-bold">{title}</h3>
+      <h2 className="font-heading text-lg font-bold">{title}</h2>
       <p className="text-sm text-muted-foreground">{description}</p>
     </div>
   );

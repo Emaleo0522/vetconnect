@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { createPetSchema, type CreatePetInput } from "@vetconnect/shared/validators/pets";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +29,23 @@ const sexOptions = [
   { value: "female", label: "Hembra" },
 ];
 
+type PetSpecies = "dog" | "cat" | "bird" | "rabbit" | "other";
+type PetSex = "male" | "female";
+
+export interface CreatePetInput {
+  name: string;
+  species: PetSpecies;
+  breed?: string;
+  birthDate: string;
+  sex: PetSex;
+  color?: string;
+  weight?: number;
+  microchip?: string;
+  allergies?: string;
+  medicalConditions?: string;
+  currentMedication?: string;
+}
+
 interface PetFormProps {
   defaultValues?: Partial<CreatePetInput>;
   onSubmit: (data: CreatePetInput) => Promise<void>;
@@ -55,7 +70,6 @@ export function PetForm({
     watch,
     formState: { errors },
   } = useForm<CreatePetInput>({
-    resolver: zodResolver(createPetSchema),
     defaultValues: {
       name: "",
       species: "dog",

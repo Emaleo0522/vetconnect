@@ -3,10 +3,9 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
-import { PetForm } from "@/components/pets/pet-form";
+import { PetForm, type CreatePetInput } from "@/components/pets/pet-form";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import type { CreatePetInput } from "@vetconnect/shared/validators/pets";
 
 export default function NewPetPage() {
   const router = useRouter();
