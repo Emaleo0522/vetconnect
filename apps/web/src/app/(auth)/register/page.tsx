@@ -73,6 +73,7 @@ export default function RegisterPage() {
   const [orgType, setOrgType] = useState<"shelter" | "rescue" | "foundation" | "other">("shelter");
   const [orgAddress, setOrgAddress] = useState("");
   const [website, setWebsite] = useState("");
+  const [orgDescription, setOrgDescription] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -194,26 +195,104 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
-            {/* Common fields */}
+            {/* Org-specific fields FIRST when role is org */}
+            {role === "org" && (
+              <>
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-4">
+                  <p className="text-sm font-semibold text-primary flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Datos de la organizacion
+                  </p>
+                  <div className="space-y-2">
+                    <Label htmlFor="org-name">Nombre de la organizacion *</Label>
+                    <Input
+                      id="org-name"
+                      value={orgName}
+                      onChange={(e) => setOrgName(e.target.value)}
+                      placeholder="Refugio Patitas Felices"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="org-type">Tipo *</Label>
+                    <Select
+                      value={orgType}
+                      onValueChange={(v) => setOrgType(v as typeof orgType)}
+                    >
+                      <SelectTrigger id="org-type">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="shelter">Refugio</SelectItem>
+                        <SelectItem value="rescue">Rescate</SelectItem>
+                        <SelectItem value="foundation">Fundacion</SelectItem>
+                        <SelectItem value="other">Otro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="org-description">Descripcion / Mision</Label>
+                    <Textarea
+                      id="org-description"
+                      value={orgDescription}
+                      onChange={(e) => setOrgDescription(e.target.value)}
+                      placeholder="Contanos sobre la organizacion, su mision y que tipo de animales atienden..."
+                      rows={3}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="org-address">Direccion *</Label>
+                    <Input
+                      id="org-address"
+                      value={orgAddress}
+                      onChange={(e) => setOrgAddress(e.target.value)}
+                      placeholder="Av. San Martin 5678, CABA"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="website">Sitio web</Label>
+                    <Input
+                      id="website"
+                      type="url"
+                      value={website}
+                      onChange={(e) => setWebsite(e.target.value)}
+                      placeholder="https://www.mirefugio.org"
+                    />
+                  </div>
+                </div>
+                <div className="border-t border-border pt-4">
+                  <p className="mb-1 text-sm font-medium text-muted-foreground">
+                    Persona de contacto
+                  </p>
+                </div>
+              </>
+            )}
+
+            {/* Common fields — labels change based on role */}
             <div className="space-y-2">
-              <Label htmlFor="name">Nombre completo</Label>
+              <Label htmlFor="name">
+                {role === "org" ? "Nombre del responsable" : "Nombre completo"}
+              </Label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Juan Perez"
+                placeholder={role === "org" ? "Nombre y apellido del responsable" : "Juan Perez"}
                 autoComplete="name"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reg-email">Email</Label>
+              <Label htmlFor="reg-email">
+                {role === "org" ? "Email de contacto" : "Email"}
+              </Label>
               <Input
                 id="reg-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu@email.com"
+                placeholder={role === "org" ? "contacto@mirefugio.org" : "tu@email.com"}
                 autoComplete="email"
                 required
               />
@@ -231,7 +310,9 @@ export default function RegisterPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Telefono (opcional)</Label>
+              <Label htmlFor="phone">
+                {role === "org" ? "Telefono de la organizacion" : "Telefono (opcional)"}
+              </Label>
               <Input
                 id="phone"
                 type="tel"
@@ -239,6 +320,7 @@ export default function RegisterPage() {
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+54 11 1234-5678"
                 autoComplete="tel"
+                required={role === "org"}
               />
             </div>
 
@@ -298,64 +380,6 @@ export default function RegisterPage() {
                     onChange={(e) => setClinicPhone(e.target.value)}
                     placeholder="+54 11 5555-0000"
                     required
-                  />
-                </div>
-              </>
-            )}
-
-            {/* Org-specific fields */}
-            {role === "org" && (
-              <>
-                <div className="border-t border-border pt-4">
-                  <p className="mb-3 text-sm font-medium text-muted-foreground">
-                    Datos de la organizacion
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="org-name">Nombre de la organizacion</Label>
-                  <Input
-                    id="org-name"
-                    value={orgName}
-                    onChange={(e) => setOrgName(e.target.value)}
-                    placeholder="Refugio Patitas Felices"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="org-type">Tipo de organizacion</Label>
-                  <Select
-                    value={orgType}
-                    onValueChange={(v) => setOrgType(v as typeof orgType)}
-                  >
-                    <SelectTrigger id="org-type">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="shelter">Refugio</SelectItem>
-                      <SelectItem value="rescue">Rescate</SelectItem>
-                      <SelectItem value="foundation">Fundacion</SelectItem>
-                      <SelectItem value="other">Otro</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="org-address">Direccion</Label>
-                  <Input
-                    id="org-address"
-                    value={orgAddress}
-                    onChange={(e) => setOrgAddress(e.target.value)}
-                    placeholder="Av. San Martin 5678, CABA"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="website">Sitio web (opcional)</Label>
-                  <Input
-                    id="website"
-                    type="url"
-                    value={website}
-                    onChange={(e) => setWebsite(e.target.value)}
-                    placeholder="https://www.mirefugio.org"
                   />
                 </div>
               </>
