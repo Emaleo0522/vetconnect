@@ -193,6 +193,43 @@ export async function updatePetPhoto(
 }
 
 // ---------------------------------------------------------------------------
+// listPetsByVet — returns all pets where the vet is the linked vet
+// ---------------------------------------------------------------------------
+
+export async function listPetsByVet(
+  vetId: string,
+  page: number = 1,
+  limit: number = 20
+) {
+  const offset = (page - 1) * limit;
+
+  const results = await db
+    .select()
+    .from(pets)
+    .where(eq(pets.vetId, vetId))
+    .orderBy(pets.name)
+    .limit(limit)
+    .offset(offset);
+
+  const countResult = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(pets)
+    .where(eq(pets.vetId, vetId));
+
+  const total = countResult[0]?.count ?? 0;
+
+  return {
+    items: decryptPetList(results),
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // getPetByUuid — for QR code lookup (public)
 // ---------------------------------------------------------------------------
 

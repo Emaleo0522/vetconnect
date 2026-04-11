@@ -4,9 +4,13 @@ import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { useAuthStore } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -16,6 +20,13 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   ArrowLeft,
   PawPrint,
@@ -27,7 +38,7 @@ import {
   QrCode,
   Stethoscope,
   Pill,
-  Bug,
+  Plus,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { calculateAge, speciesLabels } from "@/components/pets/pet-card";
@@ -160,12 +171,24 @@ export default function PetDetailPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const currentUser = useAuthStore((s) => s.user);
 
   const [pet, setPet] = useState<PetDetail | null>(null);
   const [history, setHistory] = useState<MedicalHistory | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDelete, setShowDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Add medical record (vet only)
+  const [showAddRecord, setShowAddRecord] = useState(false);
+  const [addingRecord, setAddingRecord] = useState(false);
+  const [recordType, setRecordType] = useState<string>("consultation");
+  const [recordDiagnosis, setRecordDiagnosis] = useState("");
+  const [recordTreatment, setRecordTreatment] = useState("");
+  const [recordNotes, setRecordNotes] = useState("");
+  const [recordDate, setRecordDate] = useState(
+    () => new Date().toISOString().split("T")[0]
+  );
 
   useEffect(() => {
     async function fetchData() {
@@ -194,6 +217,37 @@ export default function PetDetailPage({
       setDeleting(false);
     }
   }
+
+  async function handleAddRecord() {
+    setAddingRecord(true);
+    try {
+      const newRecord = await api.post<MedicalRecord>(`/api/pets/${id}/medical-records`, {
+        type: recordType,
+        diagnosis: recordDiagnosis.trim() || null,
+        treatment: recordTreatment.trim() || null,
+        notes: recordNotes.trim() || null,
+        date: recordDate,
+      });
+      setHistory((prev) =>
+        prev
+          ? { ...prev, medicalRecords: [newRecord, ...prev.medicalRecords] }
+          : prev
+      );
+      setShowAddRecord(false);
+      setRecordType("consultation");
+      setRecordDiagnosis("");
+      setRecordTreatment("");
+      setRecordNotes("");
+      setRecordDate(new Date().toISOString().split("T")[0]);
+    } catch {
+      // Toast would be nice here but keeping it simple
+    } finally {
+      setAddingRecord(false);
+    }
+  }
+
+  const isLinkedVet =
+    currentUser?.role === "vet" && pet?.vetId === currentUser?.id;
 
   if (loading) {
     return (
@@ -334,11 +388,22 @@ export default function PetDetailPage({
           <div className="space-y-4">
             {/* Medical Records */}
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2 font-heading text-base">
                   <Stethoscope className="h-4 w-4" />
                   Consultas
                 </CardTitle>
+                {isLinkedVet && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5"
+                    onClick={() => setShowAddRecord(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                    Agregar consulta
+                  </Button>
+                )}
               </CardHeader>
               <CardContent>
                 {!history?.medicalRecords.length ? (
@@ -524,6 +589,85 @@ export default function PetDetailPage({
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Add Medical Record Dialog (vet only) */}
+      <Dialog open={showAddRecord} onOpenChange={setShowAddRecord}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Agregar consulta</DialogTitle>
+            <DialogDescription>
+              Registrá una nueva consulta para {pet?.name}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="record-type">Tipo</Label>
+                <Select value={recordType} onValueChange={setRecordType}>
+                  <SelectTrigger id="record-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="consultation">Consulta</SelectItem>
+                    <SelectItem value="treatment">Tratamiento</SelectItem>
+                    <SelectItem value="surgery">Cirugía</SelectItem>
+                    <SelectItem value="other">Otro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="record-date">Fecha</Label>
+                <Input
+                  id="record-date"
+                  type="date"
+                  value={recordDate}
+                  onChange={(e) => setRecordDate(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="record-diagnosis">Diagnóstico</Label>
+              <Input
+                id="record-diagnosis"
+                placeholder="Diagnóstico del paciente"
+                value={recordDiagnosis}
+                onChange={(e) => setRecordDiagnosis(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="record-treatment">Tratamiento indicado</Label>
+              <Input
+                id="record-treatment"
+                placeholder="Tratamiento prescripto"
+                value={recordTreatment}
+                onChange={(e) => setRecordTreatment(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="record-notes">Notas adicionales</Label>
+              <Textarea
+                id="record-notes"
+                placeholder="Observaciones, indicaciones, seguimiento..."
+                value={recordNotes}
+                onChange={(e) => setRecordNotes(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowAddRecord(false)}
+              disabled={addingRecord}
+            >
+              Cancelar
+            </Button>
+            <Button onClick={handleAddRecord} disabled={addingRecord}>
+              {addingRecord ? "Guardando..." : "Guardar consulta"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Dialog */}
       <Dialog open={showDelete} onOpenChange={setShowDelete}>

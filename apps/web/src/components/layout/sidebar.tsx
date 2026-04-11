@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
+import { useAuthStore, type UserRole } from "@/lib/auth";
 import {
   LayoutDashboard,
   PawPrint,
@@ -12,20 +13,75 @@ import {
   Syringe,
   Bell,
   User,
+  Users,
+  CalendarDays,
+  Building2,
+  ClipboardList,
 } from "lucide-react";
 
-const NAV_ITEMS = [
+// ---------------------------------------------------------------------------
+// Nav items per role
+// ---------------------------------------------------------------------------
+
+type NavItem = {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+  badge?: boolean;
+};
+
+const OWNER_NAV: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/pets", label: "Mascotas", icon: PawPrint },
+  { href: "/dashboard/pets", label: "Mis Mascotas", icon: PawPrint },
   { href: "/dashboard/vets", label: "Veterinarios", icon: Stethoscope },
   { href: "/dashboard/vaccinations", label: "Vacunas", icon: Syringe },
   { href: "/dashboard/notifications", label: "Notificaciones", icon: Bell, badge: true },
   { href: "/dashboard/profile", label: "Perfil", icon: User },
 ];
 
+const VET_NAV: NavItem[] = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard/patients", label: "Mis Pacientes", icon: PawPrint },
+  { href: "/dashboard/schedule", label: "Mis Horarios", icon: CalendarDays },
+  { href: "/dashboard/vets", label: "Directorio", icon: Stethoscope },
+  { href: "/dashboard/notifications", label: "Notificaciones", icon: Bell, badge: true },
+  { href: "/dashboard/profile", label: "Perfil", icon: User },
+];
+
+const ORG_NAV: NavItem[] = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard/vets", label: "Veterinarios", icon: Stethoscope },
+  { href: "/dashboard/notifications", label: "Notificaciones", icon: Bell, badge: true },
+  { href: "/dashboard/profile", label: "Mi Organización", icon: Building2 },
+];
+
+const ADMIN_NAV: NavItem[] = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard/admin/users", label: "Usuarios", icon: Users },
+  { href: "/dashboard/admin/reports", label: "Reportes", icon: ClipboardList },
+  { href: "/dashboard/notifications", label: "Notificaciones", icon: Bell, badge: true },
+  { href: "/dashboard/profile", label: "Perfil", icon: User },
+];
+
+function getNavItems(role: UserRole): NavItem[] {
+  switch (role) {
+    case "vet":   return VET_NAV;
+    case "org":   return ORG_NAV;
+    case "admin": return ADMIN_NAV;
+    default:      return OWNER_NAV;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
 export function Sidebar() {
   const pathname = usePathname();
+  const { user } = useAuthStore();
   const [unreadCount, setUnreadCount] = useState(0);
+
+  const navItems = getNavItems(user?.role ?? "owner");
 
   useEffect(() => {
     async function fetchUnread() {
@@ -37,7 +93,6 @@ export function Sidebar() {
       }
     }
     fetchUnread();
-    // Poll every 60s
     const interval = setInterval(fetchUnread, 60000);
     return () => clearInterval(interval);
   }, []);
@@ -52,7 +107,7 @@ export function Sidebar() {
       </div>
 
       <nav className="space-y-1 p-4" aria-label="Menu principal">
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href !== "/dashboard" && pathname.startsWith(item.href));
@@ -83,4 +138,4 @@ export function Sidebar() {
   );
 }
 
-export { NAV_ITEMS };
+export { OWNER_NAV as NAV_ITEMS };

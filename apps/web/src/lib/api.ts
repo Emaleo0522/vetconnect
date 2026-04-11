@@ -75,6 +75,42 @@ async function request<T>(
   return json.data as T;
 }
 
+async function upload<T>(path: string, fieldName: string, file: File): Promise<T> {
+  const token = getToken();
+  const formData = new FormData();
+  formData.append(fieldName, file);
+
+  // IMPORTANT: Do NOT set Content-Type — browser sets it with the correct boundary
+  const headers: Record<string, string> = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  const res = await fetch(`${API_URL}${path}`, {
+    method: "POST",
+    headers,
+    body: formData,
+    credentials: "include",
+  });
+
+  if (res.status === 401 && typeof window !== "undefined") {
+    localStorage.removeItem("vc_token");
+    localStorage.removeItem("vc_user");
+    window.location.href = "/login";
+    throw new ApiError("UNAUTHORIZED", "Session expired", 401);
+  }
+
+  const json: ApiResponse<T> = await res.json();
+
+  if (!json.success || !res.ok) {
+    throw new ApiError(
+      json.error?.code ?? "UNKNOWN_ERROR",
+      json.error?.message ?? "Upload failed",
+      res.status,
+    );
+  }
+
+  return json.data as T;
+}
+
 export const api = {
   get: <T>(path: string) => request<T>(path, { method: "GET" }),
 
@@ -97,4 +133,7 @@ export const api = {
     }),
 
   delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
+
+  upload: <T>(path: string, fieldName: string, file: File) =>
+    upload<T>(path, fieldName, file),
 };

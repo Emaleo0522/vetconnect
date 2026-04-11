@@ -12,6 +12,7 @@ import {
 import {
   createPet,
   listPetsByOwner,
+  listPetsByVet,
   getPetById,
   updatePet,
   deletePet,
@@ -65,6 +66,18 @@ petsRouter.get("/api/pets", requireRole("owner"), async (c) => {
   const limit = Math.min(parseInt(c.req.query("limit") ?? "20", 10), 100);
 
   const result = await listPetsByOwner(user.id, page, limit);
+  return c.json({ success: true, data: result });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/pets/my-patients — list patients linked to the authenticated vet
+// ---------------------------------------------------------------------------
+petsRouter.get("/api/pets/my-patients", requireRole("vet"), async (c) => {
+  const user = c.get("user");
+  const page = parseInt(c.req.query("page") ?? "1", 10);
+  const limit = Math.min(parseInt(c.req.query("limit") ?? "20", 10), 100);
+
+  const result = await listPetsByVet(user.id, page, limit);
   return c.json({ success: true, data: result });
 });
 
