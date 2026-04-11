@@ -49,15 +49,44 @@ export function VetMap({ vets, className, singleVet = false }: VetMapProps) {
 
       // Default center: Buenos Aires
       const defaultCenter: [number, number] = [-34.6037, -58.3816];
-      const center = validVets.length > 0
+
+      // Intentar centrar en la ubicación del usuario (solo en modo listado)
+      let userCenter: [number, number] | null = null;
+      if (!singleVet && navigator.geolocation) {
+        await new Promise<void>((resolve) => {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              userCenter = [pos.coords.latitude, pos.coords.longitude];
+              resolve();
+            },
+            () => resolve(), // Si el usuario rechaza o falla, continuar con default
+            { timeout: 4000 },
+          );
+        });
+      }
+
+      const center = singleVet && validVets.length > 0
         ? [Number(validVets[0].latitude), Number(validVets[0].longitude)] as [number, number]
-        : defaultCenter;
+        : (userCenter ?? defaultCenter);
 
       const map = L.map(mapRef.current!, {
         center,
         zoom: singleVet ? 15 : 12,
         scrollWheelZoom: !singleVet,
       });
+
+      // Marker de posición del usuario (solo en modo listado)
+      if (!singleVet && userCenter) {
+        const userIcon = L.divIcon({
+          html: `<div style="width:14px;height:14px;background:#2B7A9E;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.4)"></div>`,
+          className: "",
+          iconSize: [14, 14],
+          iconAnchor: [7, 7],
+        });
+        L.marker(userCenter, { icon: userIcon })
+          .addTo(map)
+          .bindPopup("<strong>Tu ubicación</strong>");
+      }
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
