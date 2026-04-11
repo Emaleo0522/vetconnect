@@ -1,0 +1,17 @@
+{
+  "name": "vetconnect",
+  "version": "0.0.1",
+  "private": true,
+  "description": "VetConnect Global - Plataforma veterinaria",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.base.json",
+    "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

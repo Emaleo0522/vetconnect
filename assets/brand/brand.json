@@ -1,0 +1,175 @@
+{
+  "project": "vetconnect",
+  "version": 1,
+  "created_at": "2026-04-10",
+  "identity": {
+    "name": "VetConnect Global",
+    "slogan": "Cuidamos juntos, conectamos vidas",
+    "tone": "warm, professional, trustworthy, approachable",
+    "personality": ["caring", "reliable", "modern", "inclusive", "empowering"],
+    "target": "Duenos de mascotas que buscan atencion veterinaria confiable, veterinarios y clinicas que quieren ampliar su alcance, voluntarios y organizaciones de rescate animal, ciudadanos que desean ayudar animales en situacion de calle"
+  },
+  "colors": {
+    "primary": {
+      "hex": "#2B7A9E",
+      "use": "elementos principales, CTA, headers, navegacion activa",
+      "name": "Teal Trust"
+    },
+    "secondary": {
+      "hex": "#4CAF7D",
+      "use": "acentos, badges de salud, indicadores positivos, confirmaciones",
+      "name": "Vida Green"
+    },
+    "accent": {
+      "hex": "#F5A623",
+      "use": "detalles decorativos, notificaciones, alertas suaves, estrellas de rating",
+      "name": "Warm Amber"
+    },
+    "neutral": {
+      "hex": "#F7F9FC",
+      "use": "backgrounds principales, cards, superficies",
+      "name": "Cloud White"
+    },
+    "text_dark": {
+      "hex": "#1A2B3C",
+      "use": "texto sobre fondo claro, titulos, body text",
+      "name": "Deep Navy"
+    },
+    "text_light": {
+      "hex": "#F0F4F8",
+      "use": "texto sobre fondo oscuro, texto en headers con fondo de color",
+      "name": "Soft Ice"
+    }
+  },
+  "colors_extended": {
+    "surface": {
+      "hex": "#FFFFFF",
+      "use": "cards elevadas, modales, inputs"
+    },
+    "surface_dark": {
+      "hex": "#0F1B2A",
+      "use": "modo oscuro background principal"
+    },
+    "neutral_dark": {
+      "hex": "#1E2D3D",
+      "use": "modo oscuro cards y superficies"
+    },
+    "border": {
+      "hex": "#DCE3EB",
+      "use": "bordes sutiles, separadores, dividers"
+    },
+    "border_dark": {
+      "hex": "#2A3B4D",
+      "use": "modo oscuro bordes"
+    },
+    "error": {
+      "hex": "#DC3545",
+      "use": "errores, alertas criticas, validaciones fallidas"
+    },
+    "warning": {
+      "hex": "#E8A317",
+      "use": "advertencias, vacunas proximas a vencer"
+    },
+    "success": {
+      "hex": "#28A745",
+      "use": "exito, vacunas al dia, verificaciones completadas"
+    },
+    "info": {
+      "hex": "#5BA4CF",
+      "use": "informacion contextual, tooltips, badges informativos"
+    }
+  },
+  "typography": {
+    "heading": {
+      "family": "Plus Jakarta Sans",
+      "weights": ["700", "800"],
+      "source": "google_fonts",
+      "url": "https://fonts.google.com/specimen/Plus+Jakarta+Sans",
+      "use": "titulos, headers de seccion, nombres de pantalla"
+    },
+    "body": {
+      "family": "Inter",
+      "weights": ["300", "400", "500"],
+      "source": "google_fonts",
+      "url": "https://fonts.google.com/specimen/Inter",
+      "use": "texto de cuerpo, descripciones, contenido medico, listas"
+    },
+    "accent": {
+      "family": "Nunito",
+      "weights": ["600", "700"],
+      "source": "google_fonts",
+      "url": "https://fonts.google.com/specimen/Nunito",
+      "use": "slogan, badges, etiquetas, elementos amigables y cercanos"
+    }
+  },
+  "spacing": {
+    "unit": 4,
+    "scale": {
+      "xs": 4,
+      "sm": 8,
+      "md": 16,
+      "lg": 24,
+      "xl": 32,
+      "2xl": 48,
+      "3xl": 64
+    },
+    "note": "Base 4px. Multiplica por la escala. Mobile-first: usar sm/md como defaults."
+  },
+  "border_radius": {
+    "sm": 6,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "full": 9999,
+    "note": "Esquinas redondeadas suaves para transmitir calidez. Cards con md, botones con lg, avatares con full."
+  },
+  "shadows": {
+    "sm": "0 1px 3px rgba(26, 43, 60, 0.08)",
+    "md": "0 4px 12px rgba(26, 43, 60, 0.10)",
+    "lg": "0 8px 24px rgba(26, 43, 60, 0.12)",
+    "note": "Sombras suaves con base del text_dark. Elevar con sm para cards, md para modales, lg para dropdowns."
+  },
+  "asset_specs": {
+    "logo": {
+      "width": 800,
+      "height": 800,
+      "bg": "transparent",
+      "formats": ["SVG", "PNG"]
+    },
+    "hero": {
+      "width": 1920,
+      "height": 1080,
+      "format": "PNG",
+      "variants": ["desktop", "mobile_768x1024"]
+    },
+    "thumbnail": {
+      "width": 400,
+      "height": 400,
+      "format": "PNG"
+    },
+    "app_icon": {
+      "width": 1024,
+      "height": 1024,
+      "format": "PNG",
+      "bg": "primary_gradient",
+      "note": "Icono para app stores iOS y Android"
+    }
+  },
+  "prompt_ingredients": {
+    "style_tags": [
+      "clean modern mobile app",
+      "veterinary healthcare",
+      "pet wellness",
+      "warm professional",
+      "teal and green color scheme",
+      "soft rounded UI",
+      "friendly medical aesthetic",
+      "animal care community",
+      "paw print motif",
+      "organic shapes"
+    ],
+    "photo_style": "Warm, natural lighting photographs of pets and veterinarians interacting. Genuine emotional moments between animals and their caregivers. Clean clinical environments balanced with warmth. Soft depth of field, pastel tones with teal and green accents. Mobile-optimized compositions with clear focal points.",
+    "logo_style": "Modern minimalist icon combining a paw print with a medical cross or heart shape. Clean geometric lines with rounded corners. Teal primary color (#2B7A9E) with optional green accent (#4CAF7D). Works at small sizes for mobile app icon. No fine details that get lost at 32px.",
+    "avoid_global": "watermark, text overlay, UI elements, borders, frame, cartoon, 3D render, low quality, blurry, pixelated, oversaturated, deformed animals, scary medical imagery, needles, blood, aggressive animals, dark moody lighting"
+  }
+}
