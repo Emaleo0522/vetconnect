@@ -256,7 +256,11 @@ export default function VetProfilePage() {
                   {vet.specialties.map((spec) => (
                     <Badge
                       key={spec}
-                      className="bg-[#4CAF7D]/10 text-[#4CAF7D] border-[#4CAF7D]/20"
+                      style={{
+                        background: "var(--forest-50)",
+                        color: "var(--forest-700)",
+                        borderColor: "var(--forest-200)",
+                      }}
                     >
                       {spec}
                     </Badge>
