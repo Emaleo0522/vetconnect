@@ -208,7 +208,7 @@ export function OrgDashboard() {
             </Link>
 
             <Link
-              href="/dashboard/notifications"
+              href="/dashboard/notificaciones"
               className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
             >
               <Bell className="h-5 w-5 shrink-0 text-primary" />

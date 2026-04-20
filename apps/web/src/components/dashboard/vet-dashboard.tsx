@@ -6,7 +6,8 @@ import { useAuthStore } from "@/lib/auth";
 import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import {
   PawPrint,
@@ -113,9 +114,9 @@ export function VetDashboard() {
                 Completá tu perfil profesional para que los dueños puedan encontrarte.
               </p>
             </div>
-            <Button asChild size="sm" variant="outline" className="shrink-0 border-amber-400">
-              <Link href="/dashboard/profile">Completar perfil</Link>
-            </Button>
+            <Link href="/dashboard/profile" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "shrink-0 border-amber-400")}>
+              Completar perfil
+            </Link>
           </CardContent>
         </Card>
       )}
@@ -222,9 +223,9 @@ export function VetDashboard() {
               <div className="flex flex-col items-center gap-2 py-6">
                 <CalendarDays className="h-8 w-8 text-muted-foreground/30" />
                 <p className="text-sm text-muted-foreground">No configuraste tus horarios.</p>
-                <Button asChild size="sm" variant="outline" className="mt-1">
-                  <Link href="/dashboard/schedule">Configurar horarios</Link>
-                </Button>
+                <Link href="/dashboard/schedule" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-1")}>
+                  Configurar horarios
+                </Link>
               </div>
             ) : (
               <div className="space-y-2">
@@ -271,24 +272,18 @@ export function VetDashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 sm:grid-cols-3">
-            <Button asChild variant="outline" className="h-auto flex-col gap-1.5 py-4">
-              <Link href="/dashboard/patients">
-                <PawPrint className="h-5 w-5" />
-                <span>Ver pacientes</span>
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-auto flex-col gap-1.5 py-4">
-              <Link href="/dashboard/schedule">
-                <CalendarDays className="h-5 w-5" />
-                <span>Mis horarios</span>
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-auto flex-col gap-1.5 py-4">
-              <Link href={`/dashboard/vets/${user?.id}`}>
-                <Star className="h-5 w-5" />
-                <span>Ver mi perfil</span>
-              </Link>
-            </Button>
+            <Link href="/dashboard/patients" className={cn(buttonVariants({ variant: "outline" }), "h-auto flex-col gap-1.5 py-4")}>
+              <PawPrint className="h-5 w-5" />
+              <span>Ver pacientes</span>
+            </Link>
+            <Link href="/dashboard/schedule" className={cn(buttonVariants({ variant: "outline" }), "h-auto flex-col gap-1.5 py-4")}>
+              <CalendarDays className="h-5 w-5" />
+              <span>Mis horarios</span>
+            </Link>
+            <Link href={`/dashboard/vets/${user?.id}`} className={cn(buttonVariants({ variant: "outline" }), "h-auto flex-col gap-1.5 py-4")}>
+              <Star className="h-5 w-5" />
+              <span>Ver mi perfil</span>
+            </Link>
           </div>
         </CardContent>
       </Card>
