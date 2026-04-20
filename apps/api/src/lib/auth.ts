@@ -14,9 +14,16 @@ import { env } from "./env.js";
 // We define our 4 roles with the admin plugin's `roles` option.
 // Permissions are enforced at the middleware layer (requireRole).
 
+// Derive the public-facing base URL — BETTER_AUTH_URL in production, fallback to localhost
+const resolvedBaseURL =
+  env.BETTER_AUTH_URL ?? `http://localhost:${env.PORT}`;
+
+// Determine if we are running in production (for Secure cookie)
+const isProduction = env.NODE_ENV === "production";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TS2742: zod v4 internal type not portable
 export const auth: any = betterAuth({
-  baseURL: `http://localhost:${env.PORT}`,
+  baseURL: resolvedBaseURL,
   basePath: "/api/auth",
   secret: env.BETTER_AUTH_SECRET,
   trustedOrigins: [
@@ -33,7 +40,35 @@ export const auth: any = betterAuth({
   // --- Email/Password ---
   emailAndPassword: {
     enabled: true,
+    // autoSignIn is true so Better Auth creates the session on sign-up.
+    // The /api/users/register/* endpoints call sign-up internally and
+    // forward the session token — no manual sign-in needed post-register.
     autoSignIn: true,
+  },
+
+  // --- Cookie config (T10) ---
+  // Cross-origin: Netlify (frontend) <-> VPS (API)
+  // Requires SameSite=None; Secure; HttpOnly for cross-site cookies.
+  // useSecureCookies: true makes Better Auth add __Secure- prefix automatically.
+  // Do NOT set cookiePrefix manually — it would double-prefix (e.g. __Secure-__Secure-).
+  advanced: {
+    useSecureCookies: isProduction,
+    crossSubdomainCookies: {
+      enabled: false, // different domains, not subdomains
+    },
+    defaultCookieAttributes: isProduction
+      ? {
+          httpOnly: true,
+          secure: true,
+          sameSite: "none" as const,
+          path: "/",
+        }
+      : {
+          httpOnly: true,
+          secure: false,
+          sameSite: "lax" as const,
+          path: "/",
+        },
   },
 
   // --- Session config ---

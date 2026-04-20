@@ -20,13 +20,16 @@ export const notifications = pgTable(
     title: text("title").notNull(),
     body: text("body").notNull(),
     data: jsonb("data").$type<Record<string, unknown>>(),
+    link: text("link"),
     isRead: boolean("is_read").notNull().default(false),
+    isArchived: boolean("is_archived").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
   },
   (table) => [
     index("notifications_user_unread_idx").on(table.userId, table.isRead),
+    index("notifications_user_archived_idx").on(table.userId, table.isArchived),
   ]
 );
 
@@ -38,6 +41,24 @@ export const pushTokens = pgTable("push_tokens", {
   token: text("token").notNull().unique(),
   platform: platformEnum("platform").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+// ---------------------------------------------------------------------------
+// Notification preferences (per user)
+// ---------------------------------------------------------------------------
+
+export const notificationPreferences = pgTable("notification_preferences", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  vaccinaProxima: boolean("vaccina_proxima").notNull().default(true),
+  turnoProximo: boolean("turno_proximo").notNull().default(true),
+  alertaPerdidos: boolean("alerta_perdidos").notNull().default(true),
+  comunidad: boolean("comunidad").notNull().default(true),
+  avistamiento: boolean("avistamiento").notNull().default(true),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
 });

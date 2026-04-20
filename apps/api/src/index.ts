@@ -20,8 +20,13 @@ import { vaccinationsRouter } from "./routes/vaccinations.js";
 import { treatmentsRouter } from "./routes/treatments.js";
 import { notificationsRouter } from "./routes/notifications.js";
 import { pushTokensRouter } from "./routes/pushTokens.js";
+import { appointmentsRouter } from "./routes/appointments.js";
+import { favoritesRouter } from "./routes/favorites.js";
+import { lostRouter } from "./routes/lost.js";
+import { communityRouter } from "./routes/community.js";
 import { startVaccinationAlerts } from "./jobs/vaccination-alerts.js";
-import { generalRateLimit, loginRateLimit, registerRateLimit, qrRateLimit, reviewsRateLimit } from "./middleware/rateLimit.js";
+import { startAppointmentReminders } from "./jobs/appointment-reminders.js";
+import { generalRateLimit, loginRateLimit, registerRateLimit, qrRateLimit, reviewsRateLimit, vetsListRateLimit } from "./middleware/rateLimit.js";
 
 const app = new Hono();
 
@@ -42,6 +47,7 @@ if (env.NODE_ENV === "production") {
   app.use("/api/pets/qr/*", qrRateLimit);
   app.use("/api/pets/shared-card/*", qrRateLimit);
   app.use("/api/vets/:id/reviews/*", reviewsRateLimit);
+  app.use("/api/vets", vetsListRateLimit);
   app.use("/api/*", generalRateLimit);
 }
 
@@ -59,6 +65,10 @@ app.route("/", petsRouter);
 app.route("/", treatmentsRouter);    // /api/pets/:petId/treatments/*
 app.route("/", notificationsRouter); // /api/notifications/*
 app.route("/", pushTokensRouter);    // /api/push-tokens
+app.route("/", appointmentsRouter); // /api/appointments/* + /api/vets/:id/slots
+app.route("/", favoritesRouter);    // /api/users/me/favorites
+app.route("/", lostRouter);         // /api/lost-reports/*
+app.route("/", communityRouter);    // /api/posts/* + /api/comments/*
 app.route("/", scheduleRouter);  // /api/vets/me/* — must mount before vetsRouter to avoid :id catch
 app.route("/", reviewsRouter);   // /api/vets/:id/reviews/*
 app.route("/", vetsRouter);      // /api/vets, /api/vets/:id
@@ -111,6 +121,8 @@ serve(
     console.log(`VetConnect API running at http://localhost:${info.port}`);
     // Start vaccination alerts job (runs once on startup, then every 24h)
     startVaccinationAlerts();
+    // Start appointment reminder job (checks every hour)
+    startAppointmentReminders();
   }
 );
 

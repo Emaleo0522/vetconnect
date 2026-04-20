@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment — secrets
+.env
+.env.local
+.env.*.local
+
+# Uploads (user files, not code)
+uploads/
+
+# Logs
+*.log
+
+# TypeScript
+*.tsbuildinfo

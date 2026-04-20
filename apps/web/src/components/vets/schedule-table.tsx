@@ -79,12 +79,19 @@ export function ScheduleTable({ schedule, isEmergency24h }: ScheduleTableProps) 
                   </td>
                   <td className="px-4 py-2.5 text-center">
                     <span
-                      className={cn(
-                        "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+                      className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                      style={
                         isActive
-                          ? "bg-[#4CAF7D]/10 text-[#4CAF7D]"
-                          : "bg-muted text-muted-foreground",
-                      )}
+                          ? {
+                              background: "var(--forest-50)",
+                              color: "var(--forest-700)",
+                              border: "1px solid var(--forest-200)",
+                            }
+                          : {
+                              background: "var(--cream-100)",
+                              color: "var(--warm-400)",
+                            }
+                      }
                     >
                       {isActive ? "Abierto" : "Cerrado"}
                     </span>

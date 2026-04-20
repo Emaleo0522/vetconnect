@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { PetForm, type CreatePetInput } from "@/components/pets/pet-form";
-import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
@@ -56,28 +55,35 @@ export default function EditPetPage({
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="h-8 w-48 animate-pulse rounded bg-muted" />
-        <div className="h-64 animate-pulse rounded-xl bg-muted" />
+      <div className="space-y-8">
+        <div className="skeleton-warm" style={{ height: "24px", width: "160px" }} />
+        <div className="skeleton-warm" style={{ height: "36px", width: "240px" }} />
+        <div className="skeleton-warm" style={{ height: "400px" }} />
       </div>
     );
   }
 
   if (!pet) {
     return (
-      <div className="flex flex-col items-center gap-4 py-12">
-        <p className="text-muted-foreground">Mascota no encontrada.</p>
-        <Link href="/dashboard/pets">
-          <Button variant="outline" className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Volver a mascotas
-          </Button>
+      <div className="flex flex-col items-center gap-4 py-20 text-center">
+        <p
+          className="text-xl italic"
+          style={{ fontFamily: "var(--font-fraunces)", color: "var(--warm-600)" }}
+        >
+          Mascota no encontrada
+        </p>
+        <Link
+          href="/dashboard/pets"
+          className="flex items-center gap-1 text-sm hover:underline"
+          style={{ fontFamily: "var(--font-inter)", color: "var(--forest-700)" }}
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Volver a mis mascotas
         </Link>
       </div>
     );
   }
 
-  // Convert pet data to form defaults
   const defaults: Partial<CreatePetInput> = {
     name: pet.name,
     species: pet.species as CreatePetInput["species"],
@@ -93,15 +99,27 @@ export default function EditPetPage({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Link href={`/dashboard/pets/${id}`}>
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Volver al perfil</span>
-          </Button>
-        </Link>
-        <h1 className="font-heading text-2xl font-bold">
+    <div className="space-y-8">
+      <Link
+        href={`/dashboard/pets/${id}`}
+        className="flex items-center gap-1 text-sm transition-colors hover:underline"
+        style={{ fontFamily: "var(--font-inter)", color: "var(--warm-600)" }}
+      >
+        <ArrowLeft className="h-3.5 w-3.5" />
+        Volver al perfil
+      </Link>
+
+      <div>
+        <h1
+          className="text-3xl"
+          style={{
+            fontFamily: "var(--font-fraunces)",
+            fontStyle: "italic",
+            color: "var(--warm-900)",
+            fontWeight: 400,
+            letterSpacing: "-0.02em",
+          }}
+        >
           Editar a {pet.name}
         </h1>
       </div>

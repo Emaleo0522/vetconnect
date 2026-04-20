@@ -44,9 +44,6 @@ npm-debug.log*
 # Test
 coverage/
 
-# Pipeline (internal)
-.pipeline/
-
 # Claude Code
 .claude/
 
@@ -56,3 +53,13 @@ qa-*.png
 # Temp
 .tmp/
 tmp/
+
+# Netlify
+.netlify/
+
+# Deploy artifacts
+*.zip
+
+# Assets temp
+assets/og-temp/
+"imagen para figma/"

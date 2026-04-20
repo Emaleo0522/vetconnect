@@ -4,144 +4,474 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ------------------------------------------------------------------ */
+/* VetConnect Global — Design System v2                                */
+/* Mood: editorial-magazine + warm-nature-green                        */
+/* Tipografía: Fraunces italic (display) + Source Serif 4 (body)      */
+/*             + Inter (UI utility)                                    */
+/* Paleta: forest-900 / cream / terracota — NO teal, NO Inter heading */
+/* ------------------------------------------------------------------ */
+
+/* ------------------------------------------------------------------ */
+/* Primitivos de color                                                 */
+/* ------------------------------------------------------------------ */
+:root {
+  /* Forest scale */
+  --forest-900: #1F3C2E;
+  --forest-800: #2A5040;
+  --forest-700: #2E5C42;
+  --forest-600: #4A7A62;
+  --forest-400: #8FA87B;
+  --forest-200: #C5D9B8;
+  --forest-100: #DFF0D3;
+  --forest-50: #F0F7EA;
+
+  /* Cream scale */
+  --cream-25: #FAF7F0;
+  --cream-50: #F5EFE0;
+  --cream-100: #EDE4CC;
+  --cream-200: #E0D5B8;
+  --cream-300: #CBBFA0;
+  --cream-400: #B5A888;
+
+  /* Terracota scale */
+  --terracotta-700: #A05A3A;
+  --terracotta-600: #B56845;
+  --terracotta-500: #C07A5A;
+  --terracotta-400: #CC9070;
+  --terracotta-200: #E8C4AF;
+  --terracotta-100: #F4E2D8;
+
+  /* Warm neutrals */
+  --warm-900: #1A1A18;
+  --warm-800: #2C2B28;
+  --warm-700: #42403C;
+  --warm-600: #5A5852;
+  --warm-400: #8C8A82;
+  --warm-200: #C8C6BE;
+  --warm-100: #E4E2DA;
+
+  /* RGB companions for alpha compositing */
+  --forest-900-rgb: 31 60 46;
+  --terracotta-500-rgb: 192 122 90;
+  --cream-50-rgb: 245 239 224;
+}
+
+/* ------------------------------------------------------------------ */
+/* Tokens semánticos — scope webapp (scope-webapp)                    */
+/* ------------------------------------------------------------------ */
+:root {
+  /* ---- Backgrounds ---- */
+  --background: var(--cream-50);
+  --background-subtle: var(--cream-25);
+  --surface: #FFFFFF;
+  --surface-raised: #FDFBF7;
+
+  /* ---- Texto ---- */
+  --foreground: var(--warm-900);
+  --foreground-secondary: var(--warm-600);
+  --foreground-tertiary: var(--warm-400);
+  --foreground-on-dark: var(--cream-25);
+
+  /* ---- Primario (forest) ---- */
+  --primary: var(--forest-900);
+  --primary-foreground: var(--cream-25);
+  --primary-hover: var(--forest-700);
+  --primary-muted: var(--forest-50);
+
+  /* ---- Secundario (terracotta) ---- */
+  --secondary: var(--terracotta-500);
+  --secondary-foreground: #FFFFFF;
+  --secondary-hover: var(--terracotta-600);
+  --secondary-muted: var(--terracotta-100);
+
+  /* ---- Acento (forest-400 verde oliva) ---- */
+  --accent: var(--forest-400);
+  --accent-foreground: var(--warm-900);
+  --accent-muted: var(--forest-50);
+
+  /* ---- Estado ---- */
+  --destructive: var(--terracotta-700);
+  --destructive-foreground: #FFFFFF;
+  --warning: #C49A2A;
+  --warning-foreground: var(--warm-900);
+  --success: var(--forest-600);
+  --success-foreground: #FFFFFF;
+  --info: #5A7FA0;
+  --info-foreground: #FFFFFF;
+
+  /* ---- UI borders & inputs ---- */
+  --border: rgb(var(--forest-900-rgb) / 0.12);
+  --border-strong: rgb(var(--forest-900-rgb) / 0.22);
+  --input: rgb(var(--forest-900-rgb) / 0.12);
+  --input-focus: var(--forest-900);
+  --ring: var(--terracotta-500); /* T44 — focus ring terracotta per design-system */
+
+  /* ---- Muted ---- */
+  --muted: var(--cream-100);
+  --muted-foreground: var(--warm-600);
+
+  /* ---- Cards ---- */
+  --card: #FFFFFF;
+  --card-foreground: var(--warm-900);
+  --card-border: rgb(var(--forest-900-rgb) / 0.10);
+
+  /* ---- Popover ---- */
+  --popover: #FFFFFF;
+  --popover-foreground: var(--warm-900);
+
+  /* ---- Sidebar ---- */
+  --sidebar: var(--forest-900);
+  --sidebar-foreground: var(--cream-200);
+  --sidebar-foreground-active: var(--cream-25);
+  --sidebar-accent: var(--forest-700);
+  --sidebar-accent-foreground: var(--cream-25);
+  --sidebar-border: rgb(var(--forest-900-rgb) / 0.35);
+  --sidebar-ring: var(--terracotta-500);
+  --sidebar-primary: var(--terracotta-500);
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-active-border: var(--terracotta-500);
+
+  /* ---- Tipografía ---- */
+  --font-display: var(--font-fraunces);
+  --font-serif: var(--font-source-serif);
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-fraunces);
+  --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', monospace;
+
+  /* ---- Radius ---- */
+  --radius: 0.5rem;       /* 8px base */
+  --radius-sm: 0.375rem;  /* 6px */
+  --radius-md: 0.75rem;   /* 12px — cards */
+  --radius-lg: 1rem;      /* 16px */
+  --radius-xl: 1.5rem;    /* 24px */
+  --radius-full: 9999px;  /* avatares/badges */
+
+  /* ---- Shadow editorial (sutil, no dramático) ---- */
+  --shadow-xs: 0 1px 2px rgb(var(--forest-900-rgb) / 0.04);
+  --shadow-sm: 0 2px 4px rgb(var(--forest-900-rgb) / 0.06);
+  --shadow-md: 0 4px 8px rgb(var(--forest-900-rgb) / 0.08), 0 1px 2px rgb(var(--forest-900-rgb) / 0.04);
+  --shadow-lg: 0 8px 24px rgb(var(--forest-900-rgb) / 0.10), 0 2px 4px rgb(var(--forest-900-rgb) / 0.05);
+
+  /* ---- Spacing webapp ---- */
+  --sidebar-width: 256px;
+  --topbar-height: 64px;
+
+  /* ---- Motion (motion_intensity: 3 — CSS only) ---- */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+
+  /* ---- Charts ---- */
+  --chart-1: var(--forest-900);
+  --chart-2: var(--terracotta-500);
+  --chart-3: var(--forest-400);
+  --chart-4: var(--cream-300);
+  --chart-5: var(--terracotta-700);
+}
+
+/* ------------------------------------------------------------------ */
+/* Tailwind v4 @theme — consume CSS variables                          */
+/* ------------------------------------------------------------------ */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-heading);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
+  --color-surface: var(--surface);
   --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-info: var(--info);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-source-serif);
+  --font-heading: var(--font-fraunces);
+  --font-display: var(--font-fraunces);
+  --font-mono: var(--font-mono);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-xl);
+  --radius-full: var(--radius-full);
+  /* Forest scale utilities */
+  --color-forest-900: var(--forest-900);
+  --color-forest-800: var(--forest-800);
+  --color-forest-700: var(--forest-700);
+  --color-forest-600: var(--forest-600);
+  --color-forest-400: var(--forest-400);
+  --color-forest-200: var(--forest-200);
+  --color-forest-100: var(--forest-100);
+  --color-forest-50: var(--forest-50);
+  /* Cream scale utilities */
+  --color-cream-50: var(--cream-50);
+  --color-cream-100: var(--cream-100);
+  --color-cream-200: var(--cream-200);
+  --color-cream-300: var(--cream-300);
+  /* Terracota scale utilities */
+  --color-terracotta-700: var(--terracotta-700);
+  --color-terracotta-600: var(--terracotta-600);
+  --color-terracotta-500: var(--terracotta-500);
+  --color-terracotta-200: var(--terracotta-200);
+  --color-terracotta-100: var(--terracotta-100);
+  /* Warm neutrals utilities */
+  --color-warm-900: var(--warm-900);
+  --color-warm-700: var(--warm-700);
+  --color-warm-600: var(--warm-600);
+  --color-warm-400: var(--warm-400);
+  --color-warm-200: var(--warm-200);
+  --color-warm-100: var(--warm-100);
 }
 
 /* ------------------------------------------------------------------ */
-/* VetConnect Brand Colors                                            */
-/* Primary: #2B7A9E (Teal Trust)                                      */
-/* Secondary: #4CAF7D (Vida Green)                                    */
-/* Accent: #F5A623 (Warm Amber)                                       */
+/* Base layer                                                          */
 /* ------------------------------------------------------------------ */
-
-:root {
-  --background: #F7F9FC;
-  --foreground: #1A2B3C;
-  --card: #FFFFFF;
-  --card-foreground: #1A2B3C;
-  --popover: #FFFFFF;
-  --popover-foreground: #1A2B3C;
-  --primary: #2B7A9E;
-  --primary-foreground: #FFFFFF;
-  --secondary: #4CAF7D;
-  --secondary-foreground: #FFFFFF;
-  --muted: #E8ECF1;
-  --muted-foreground: #5A6B7D;
-  --accent: #F5A623;
-  --accent-foreground: #1A2B3C;
-  --destructive: #DC3545;
-  --border: #DCE3EB;
-  --input: #DCE3EB;
-  --ring: #2B7A9E;
-  --success: #28A745;
-  --warning: #E8A317;
-  --info: #5BA4CF;
-  --chart-1: #2B7A9E;
-  --chart-2: #4CAF7D;
-  --chart-3: #F5A623;
-  --chart-4: #5BA4CF;
-  --chart-5: #DC3545;
-  --radius: 0.75rem;
-  --sidebar: #FFFFFF;
-  --sidebar-foreground: #1A2B3C;
-  --sidebar-primary: #2B7A9E;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #EBF5F9;
-  --sidebar-accent-foreground: #2B7A9E;
-  --sidebar-border: #DCE3EB;
-  --sidebar-ring: #2B7A9E;
-  --font-heading: var(--font-plus-jakarta-sans);
-}
-
-.dark {
-  --background: #0F1B2A;
-  --foreground: #F0F4F8;
-  --card: #1E2D3D;
-  --card-foreground: #F0F4F8;
-  --popover: #1E2D3D;
-  --popover-foreground: #F0F4F8;
-  --primary: #3D9BC2;
-  --primary-foreground: #F0F4F8;
-  --secondary: #5DC08E;
-  --secondary-foreground: #0F1B2A;
-  --muted: #1E2D3D;
-  --muted-foreground: #8A9BB0;
-  --accent: #F5A623;
-  --accent-foreground: #0F1B2A;
-  --destructive: #E85A68;
-  --border: #2A3B4D;
-  --input: #2A3B4D;
-  --ring: #3D9BC2;
-  --success: #34C759;
-  --warning: #F5C542;
-  --info: #6DB8E0;
-  --chart-1: #3D9BC2;
-  --chart-2: #5DC08E;
-  --chart-3: #F5A623;
-  --chart-4: #6DB8E0;
-  --chart-5: #E85A68;
-  --sidebar: #1E2D3D;
-  --sidebar-foreground: #F0F4F8;
-  --sidebar-primary: #3D9BC2;
-  --sidebar-primary-foreground: #F0F4F8;
-  --sidebar-accent: #253545;
-  --sidebar-accent-foreground: #3D9BC2;
-  --sidebar-border: #2A3B4D;
-  --sidebar-ring: #3D9BC2;
-}
-
 @layer base {
-  * {
+  *,
+  *::before,
+  *::after {
     @apply border-border outline-ring/50;
+    box-sizing: border-box;
   }
-  body {
-    @apply bg-background text-foreground;
+
+  /* prefers-reduced-motion (motion_intensity: 3 — ya es CSS-only, pero respetar igual) */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
   }
+
   html {
-    @apply font-sans;
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    -webkit-text-size-adjust: 100%;
+    tab-size: 4;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.6;
+  }
+
+  /* Headings usan Fraunces */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  /* Display italic para headings de display */
+  .font-display {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+  }
+
+  /* Body serif para contenido editorial */
+  .font-serif {
+    font-family: var(--font-source-serif), Georgia, serif;
+  }
+
+  /* UI utility font (forms, tables, labels) */
+  .font-ui {
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  /* Inputs: SIEMPRE ≥16px en mobile para evitar autozoom iOS */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="date"],
+  input[type="search"],
+  input[type="url"],
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  @media (min-width: 768px) {
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="tel"],
+    input[type="number"],
+    input[type="date"],
+    input[type="search"],
+    input[type="url"],
+    select,
+    textarea {
+      font-size: 14px;
+    }
+  }
+
+  /* Focus visible */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Componentes webapp — utilidades editoriales                         */
+/* ------------------------------------------------------------------ */
+@layer components {
+  /* Sidebar nav item — active usa border vertical 3px terracota */
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.875rem;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-family: var(--font-inter), ui-sans-serif, sans-serif;
+    font-weight: 500;
+    color: var(--sidebar-foreground);
+    transition: background-color var(--duration-base) var(--ease-standard),
+                color var(--duration-base) var(--ease-standard);
+    text-decoration: none;
+    position: relative;
+    border-left: 3px solid transparent;
+  }
+
+  .nav-item:hover {
+    background-color: rgb(var(--cream-50-rgb, 245 239 224) / 0.08);
+    color: var(--sidebar-foreground-active, var(--cream-25));
+  }
+
+  .nav-item.active {
+    background-color: rgb(var(--cream-50-rgb, 245 239 224) / 0.08);
+    color: var(--cream-25);
+    border-left-color: var(--terracotta-500);
+  }
+
+  /* Input editorial — bottom border only */
+  .input-editorial {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border-strong);
+    border-radius: 0;
+    padding: 0.5rem 0;
+    font-family: var(--font-inter), ui-sans-serif, sans-serif;
+    font-size: 16px;
+    color: var(--foreground);
+    transition: border-color var(--duration-base) var(--ease-out);
+    width: 100%;
+    outline: none;
+  }
+
+  @media (min-width: 768px) {
+    .input-editorial { font-size: 14px; }
+  }
+
+  .input-editorial:focus {
+    border-bottom-color: var(--forest-900);
+    outline: none;
+  }
+
+  .input-editorial:invalid,
+  .input-editorial[aria-invalid="true"] {
+    border-bottom-color: var(--terracotta-700);
+  }
+
+  /* Label editorial — italic serif */
+  .label-editorial {
+    font-family: var(--font-source-serif), Georgia, serif;
+    font-style: italic;
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+    letter-spacing: 0.01em;
+  }
+
+  /* Skeleton warm (cream-100 → cream-200, NO gris genérico) */
+  .skeleton-warm {
+    background: linear-gradient(
+      90deg,
+      var(--cream-100) 25%,
+      var(--cream-200) 50%,
+      var(--cream-100) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    border-radius: var(--radius);
+  }
+
+  @keyframes skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Card editorial — sin shadow agresivo */
+  .card-editorial {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-xs);
+    transition: box-shadow var(--duration-base) var(--ease-standard),
+                border-color var(--duration-base) var(--ease-standard);
+  }
+
+  .card-editorial:hover {
+    box-shadow: var(--shadow-sm);
+    border-color: rgb(var(--forest-900-rgb) / 0.18);
+  }
+
+  /* Drop zone editorial */
+  .dropzone-editorial {
+    border: 1.5px dashed var(--border-strong);
+    border-radius: var(--radius-md);
+    background: var(--cream-25);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 3rem 2rem;
+    cursor: pointer;
+    transition: border-color var(--duration-base) var(--ease-standard),
+                background-color var(--duration-base) var(--ease-standard);
+  }
+
+  .dropzone-editorial:hover,
+  .dropzone-editorial.drag-over {
+    border-color: var(--forest-600);
+    background: var(--forest-50);
   }
 }

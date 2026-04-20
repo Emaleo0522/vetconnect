@@ -1,17 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { PawPrint } from "lucide-react";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
-
-function resolveUrl(path: string | null | undefined): string | undefined {
-  if (!path) return undefined;
-  if (path.startsWith("/")) return `${API_URL}${path}`;
-  return path;
-}
+import Image from "next/image";
 
 const speciesLabels: Record<string, string> = {
   dog: "Perro",
@@ -21,15 +11,7 @@ const speciesLabels: Record<string, string> = {
   other: "Otro",
 };
 
-const speciesEmoji: Record<string, string> = {
-  dog: "🐕",
-  cat: "🐈",
-  bird: "🐦",
-  rabbit: "🐇",
-  other: "🐾",
-};
-
-function calculateAge(birthDate: string | null): string {
+export function calculateAge(birthDate: string | null): string {
   if (!birthDate) return "Edad desconocida";
   const birth = new Date(birthDate);
   const now = new Date();
@@ -64,47 +46,106 @@ export function PetCard({
   birthDate,
   weight,
 }: PetCardProps) {
+  const age = calculateAge(birthDate);
+
   return (
-    <Link href={`/dashboard/pets/${id}`} className="group block">
-      <Card className="transition-shadow hover:shadow-md">
-        <CardContent className="flex items-center gap-4 p-4">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted">
-            {photo ? (
-              <img
-                src={resolveUrl(photo)}
-                alt={name}
-                width={64}
-                height={64}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <PawPrint className="h-8 w-8 text-muted-foreground/50" />
+    <Link href={`/dashboard/pets/${id}`} className="group block" aria-label={`Ver perfil de ${name}`}>
+      <article
+        className="card-editorial flex items-center gap-4 p-4 transition-all"
+        style={{ minHeight: "96px" }}
+      >
+        {/* Foto / placeholder */}
+        <div
+          className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden"
+          style={{
+            borderRadius: "var(--radius-md)",
+            background: "var(--cream-100)",
+            border: "1px solid var(--cream-200)",
+          }}
+        >
+          {photo ? (
+            <Image
+              src={photo}
+              alt={name}
+              width={64}
+              height={64}
+              className="h-full w-full object-cover"
+              style={{ borderRadius: "var(--radius-md)" }}
+            />
+          ) : (
+            <span
+              className="text-2xl font-medium select-none"
+              aria-hidden="true"
+              style={{
+                fontFamily: "var(--font-fraunces)",
+                fontStyle: "italic",
+                color: "var(--forest-400)",
+              }}
+            >
+              {name[0]?.toUpperCase() ?? "?"}
+            </span>
+          )}
+        </div>
+
+        {/* Info */}
+        <div className="min-w-0 flex-1">
+          <h3
+            className="truncate text-base font-medium leading-tight transition-colors group-hover:underline"
+            style={{
+              fontFamily: "var(--font-fraunces)",
+              fontStyle: "italic",
+              color: "var(--warm-900)",
+            }}
+          >
+            {name}
+          </h3>
+          <p
+            className="mt-0.5 truncate text-sm"
+            style={{ fontFamily: "var(--font-inter)", color: "var(--warm-600)" }}
+          >
+            {speciesLabels[species] ?? species}
+            {breed ? ` · ${breed}` : ""}
+          </p>
+          {/* Tags edad + peso */}
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            <span
+              className="rounded-full px-2 py-0.5 text-[11px]"
+              style={{
+                background: "var(--cream-100)",
+                color: "var(--warm-700)",
+                fontFamily: "var(--font-inter)",
+                border: "1px solid var(--cream-200)",
+              }}
+            >
+              {age}
+            </span>
+            {weight && (
+              <span
+                className="rounded-full px-2 py-0.5 text-[11px]"
+                style={{
+                  background: "var(--cream-100)",
+                  color: "var(--warm-700)",
+                  fontFamily: "var(--font-inter)",
+                  border: "1px solid var(--cream-200)",
+                }}
+              >
+                {parseFloat(weight)} kg
+              </span>
             )}
           </div>
-          <div className="min-w-0 flex-1">
-            <h3 className="font-heading text-base font-semibold group-hover:text-primary">
-              {name}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {speciesEmoji[species] ?? "🐾"}{" "}
-              {speciesLabels[species] ?? species}
-              {breed ? ` - ${breed}` : ""}
-            </p>
-            <div className="mt-1 flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="text-xs">
-                {calculateAge(birthDate)}
-              </Badge>
-              {weight && (
-                <Badge variant="outline" className="text-xs">
-                  {parseFloat(weight)} kg
-                </Badge>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Arrow indicator */}
+        <span
+          className="shrink-0 text-sm transition-transform group-hover:translate-x-0.5"
+          style={{ color: "var(--warm-400)" }}
+          aria-hidden="true"
+        >
+          →
+        </span>
+      </article>
     </Link>
   );
 }
 
-export { calculateAge, speciesLabels };
+export { speciesLabels };

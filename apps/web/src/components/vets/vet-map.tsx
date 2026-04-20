@@ -34,23 +34,35 @@ export function VetMap({ vets, className, singleVet = false }: VetMapProps) {
 
       if (cancelled || !mapRef.current) return;
 
-      // Fix default marker icon
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      delete (L.Icon.Default.prototype as any)._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      // Custom forest-900 icon — NO default Leaflet blue pin
+      const forestIcon = L.divIcon({
+        html: `<div style="
+          width: 28px;
+          height: 28px;
+          background: #1F3C2E;
+          border: 3px solid #F5EFE0;
+          border-radius: 50% 50% 50% 0;
+          transform: rotate(-45deg);
+          box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+        "></div>`,
+        className: "",
+        iconSize: [28, 28],
+        iconAnchor: [14, 28],
+        popupAnchor: [0, -30],
       });
 
       const validVets = vets.filter(
-        (v) => v.latitude && v.longitude && !isNaN(Number(v.latitude)) && !isNaN(Number(v.longitude)),
+        (v) =>
+          v.latitude &&
+          v.longitude &&
+          !isNaN(Number(v.latitude)) &&
+          !isNaN(Number(v.longitude)),
       );
 
       // Default center: Buenos Aires
       const defaultCenter: [number, number] = [-34.6037, -58.3816];
 
-      // Intentar centrar en la ubicación del usuario (solo en modo listado)
+      // Try to center on user location (list view only)
       let userCenter: [number, number] | null = null;
       if (!singleVet && navigator.geolocation) {
         await new Promise<void>((resolve) => {
@@ -59,15 +71,19 @@ export function VetMap({ vets, className, singleVet = false }: VetMapProps) {
               userCenter = [pos.coords.latitude, pos.coords.longitude];
               resolve();
             },
-            () => resolve(), // Si el usuario rechaza o falla, continuar con default
+            () => resolve(),
             { timeout: 4000 },
           );
         });
       }
 
-      const center = singleVet && validVets.length > 0
-        ? [Number(validVets[0].latitude), Number(validVets[0].longitude)] as [number, number]
-        : (userCenter ?? defaultCenter);
+      const center =
+        singleVet && validVets.length > 0
+          ? ([
+              Number(validVets[0].latitude),
+              Number(validVets[0].longitude),
+            ] as [number, number])
+          : (userCenter ?? defaultCenter);
 
       const map = L.map(mapRef.current!, {
         center,
@@ -75,48 +91,66 @@ export function VetMap({ vets, className, singleVet = false }: VetMapProps) {
         scrollWheelZoom: !singleVet,
       });
 
-      // Marker de posición del usuario (solo en modo listado)
+      // User location marker (list view)
       if (!singleVet && userCenter) {
         const userIcon = L.divIcon({
-          html: `<div style="width:14px;height:14px;background:#2B7A9E;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.4)"></div>`,
+          html: `<div style="
+            width: 14px;
+            height: 14px;
+            background: var(--terracotta-500, #C07A5A);
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+          "></div>`,
           className: "",
           iconSize: [14, 14],
           iconAnchor: [7, 7],
         });
         L.marker(userCenter, { icon: userIcon })
           .addTo(map)
-          .bindPopup("<strong>Tu ubicación</strong>");
+          .bindPopup(
+            '<strong style="font-family:sans-serif">Tu ubicación</strong>',
+          );
       }
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 19,
       }).addTo(map);
 
       for (const vet of validVets) {
         const lat = Number(vet.latitude);
         const lng = Number(vet.longitude);
-        const marker = L.marker([lat, lng]).addTo(map);
+
+        // Custom forest icon — NOT default Leaflet blue pin
+        const marker = L.marker([lat, lng], { icon: forestIcon }).addTo(map);
 
         const ratingHtml = vet.avgRating
-          ? `<br/><span style="color:#F5A623">★</span> ${vet.avgRating.toFixed(1)} (${vet.reviewCount})`
+          ? `<br/><span style="color:#C49A2A;font-size:12px">★ ${vet.avgRating.toFixed(1)} (${vet.reviewCount})</span>`
           : "";
 
         marker.bindPopup(
-          `<div style="min-width:150px">
-            <strong>${vet.name}</strong>
-            <br/><span style="color:#5A6B7D;font-size:12px">${vet.clinicName}</span>
+          `<div style="min-width:160px;font-family:sans-serif">
+            <strong style="color:#1A1A18;font-size:14px">${vet.name}</strong>
+            <br/>
+            <span style="color:#5A5852;font-size:12px">${vet.clinicName}</span>
             ${ratingHtml}
-            ${!singleVet ? `<br/><a href="/dashboard/vets/${vet.id}" style="color:#2B7A9E;font-size:12px">Ver perfil →</a>` : ""}
+            ${
+              !singleVet
+                ? `<br/><a href="/dashboard/vets/${vet.id}" style="color:#1F3C2E;font-size:12px;font-weight:500">Ver perfil →</a>`
+                : ""
+            }
           </div>`,
         );
       }
 
-      // Solo hacer fitBounds cuando NO tenemos la ubicación del usuario.
-      // Si tenemos geolocalización, el mapa ya está centrado ahí — no mover a los vets.
+      // fitBounds only if no user geolocation reference
       if (!singleVet && !userCenter && validVets.length > 1) {
         const bounds = L.latLngBounds(
-          validVets.map((v) => [Number(v.latitude), Number(v.longitude)] as [number, number]),
+          validVets.map(
+            (v) => [Number(v.latitude), Number(v.longitude)] as [number, number],
+          ),
         );
         map.fitBounds(bounds, { padding: [40, 40] });
       }

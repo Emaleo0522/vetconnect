@@ -2,19 +2,7 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { Loader2, ChevronDown, ChevronUp } from "lucide-react";
 
 const speciesOptions = [
   { value: "dog", label: "Perro" },
@@ -57,7 +45,6 @@ export function PetForm({
   defaultValues,
   onSubmit,
   submitLabel = "Registrar mascota",
-  isEdit = false,
 }: PetFormProps) {
   const [showMedical, setShowMedical] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -102,196 +89,253 @@ export function PetForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-heading">Datos basicos</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nombre *</Label>
-            <Input
-              id="name"
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8" noValidate>
+      {/* Sección datos básicos */}
+      <section>
+        <h2
+          className="mb-6 text-lg"
+          style={{
+            fontFamily: "var(--font-fraunces)",
+            fontStyle: "italic",
+            color: "var(--warm-900)",
+            fontWeight: 400,
+            borderBottom: "1px solid var(--border)",
+            paddingBottom: "0.75rem",
+          }}
+        >
+          Datos basicos
+        </h2>
+        <div className="grid gap-6 sm:grid-cols-2">
+          {/* Nombre */}
+          <EditField label="Nombre" required error={errors.name?.message}>
+            <input
+              className="input-editorial"
               placeholder="Ej: Luna"
               aria-invalid={!!errors.name}
-              {...register("name")}
+              {...register("name", { required: "El nombre es requerido" })}
             />
-            {errors.name && (
-              <p className="text-xs text-destructive">{errors.name.message}</p>
-            )}
-          </div>
+          </EditField>
 
-          <div className="space-y-2">
-            <Label htmlFor="species">Especie *</Label>
-            <Select
+          {/* Especie */}
+          <EditField label="Especie" required error={errors.species?.message}>
+            <select
+              className="input-editorial"
               value={selectedSpecies}
-              onValueChange={(v) =>
-                setValue("species", v as CreatePetInput["species"])
-              }
+              onChange={(e) => setValue("species", e.target.value as PetSpecies)}
+              aria-invalid={!!errors.species}
             >
-              <SelectTrigger id="species" className="w-full">
-                <SelectValue placeholder="Seleccionar especie" />
-              </SelectTrigger>
-              <SelectContent>
-                {speciesOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.species && (
-              <p className="text-xs text-destructive">
-                {errors.species.message}
-              </p>
-            )}
-          </div>
+              {speciesOptions.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </EditField>
 
-          <div className="space-y-2">
-            <Label htmlFor="breed">Raza</Label>
-            <Input
-              id="breed"
+          {/* Raza */}
+          <EditField label="Raza">
+            <input
+              className="input-editorial"
               placeholder="Ej: Golden Retriever"
               {...register("breed")}
             />
-          </div>
+          </EditField>
 
-          <div className="space-y-2">
-            <Label htmlFor="birthDate">Fecha de nacimiento *</Label>
-            <Input
-              id="birthDate"
+          {/* Fecha nacimiento */}
+          <EditField label="Fecha de nacimiento" required error={errors.birthDate?.message}>
+            <input
               type="date"
+              className="input-editorial"
               aria-invalid={!!errors.birthDate}
               {...register("birthDate", {
+                required: "La fecha es requerida",
                 setValueAs: (v: string) => {
                   if (!v) return "";
                   return new Date(v).toISOString();
                 },
               })}
             />
-            {errors.birthDate && (
-              <p className="text-xs text-destructive">
-                {errors.birthDate.message}
-              </p>
-            )}
-          </div>
+          </EditField>
 
-          <div className="space-y-2">
-            <Label htmlFor="sex">Sexo *</Label>
-            <Select
+          {/* Sexo */}
+          <EditField label="Sexo" required>
+            <select
+              className="input-editorial"
               value={selectedSex}
-              onValueChange={(v) =>
-                setValue("sex", v as CreatePetInput["sex"])
-              }
+              onChange={(e) => setValue("sex", e.target.value as PetSex)}
             >
-              <SelectTrigger id="sex" className="w-full">
-                <SelectValue placeholder="Seleccionar sexo" />
-              </SelectTrigger>
-              <SelectContent>
-                {sexOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              {sexOptions.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </EditField>
 
-          <div className="space-y-2">
-            <Label htmlFor="color">Color</Label>
-            <Input
-              id="color"
+          {/* Color */}
+          <EditField label="Color">
+            <input
+              className="input-editorial"
               placeholder="Ej: Dorado"
               {...register("color")}
             />
-          </div>
+          </EditField>
 
-          <div className="space-y-2">
-            <Label htmlFor="weight">Peso (kg)</Label>
-            <Input
-              id="weight"
+          {/* Peso */}
+          <EditField label="Peso (kg)" error={errors.weight?.message}>
+            <input
               type="number"
               step="0.1"
               min="0"
+              className="input-editorial"
               placeholder="Ej: 12.5"
               {...register("weight", { valueAsNumber: true })}
             />
-            {errors.weight && (
-              <p className="text-xs text-destructive">
-                {errors.weight.message}
-              </p>
-            )}
-          </div>
+          </EditField>
 
-          <div className="space-y-2">
-            <Label htmlFor="microchip">Microchip</Label>
-            <Input
-              id="microchip"
-              placeholder="Numero de microchip"
+          {/* Microchip */}
+          <EditField label="Numero de microchip">
+            <input
+              className="input-editorial"
+              placeholder="Ej: 985141006789012"
               {...register("microchip")}
             />
-          </div>
-        </CardContent>
-      </Card>
+          </EditField>
+        </div>
+      </section>
 
-      <Card>
-        <CardHeader>
-          <button
-            type="button"
-            className="flex w-full items-center justify-between"
-            onClick={() => setShowMedical(!showMedical)}
-            aria-expanded={showMedical}
+      {/* Sección datos médicos — colapsable */}
+      <section>
+        <button
+          type="button"
+          onClick={() => setShowMedical(!showMedical)}
+          className="flex w-full items-center justify-between pb-3 transition-colors"
+          style={{ borderBottom: "1px solid var(--border)" }}
+          aria-expanded={showMedical}
+        >
+          <h2
+            className="text-lg"
+            style={{
+              fontFamily: "var(--font-fraunces)",
+              fontStyle: "italic",
+              color: "var(--warm-900)",
+              fontWeight: 400,
+            }}
           >
-            <CardTitle className="font-heading">Datos medicos</CardTitle>
-            {showMedical ? (
-              <ChevronUp className="h-5 w-5 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="h-5 w-5 text-muted-foreground" />
-            )}
-          </button>
-        </CardHeader>
+            Datos medicos{" "}
+            <span
+              className="text-sm font-normal"
+              style={{ fontFamily: "var(--font-inter)", color: "var(--warm-400)" }}
+            >
+              (opcional)
+            </span>
+          </h2>
+          {showMedical ? (
+            <ChevronUp className="h-4 w-4" style={{ color: "var(--warm-600)" }} />
+          ) : (
+            <ChevronDown className="h-4 w-4" style={{ color: "var(--warm-600)" }} />
+          )}
+        </button>
+
         {showMedical && (
-          <CardContent className="grid gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="allergies">Alergias</Label>
-              <Textarea
-                id="allergies"
+          <div className="mt-6 grid gap-6">
+            <EditField label="Alergias">
+              <textarea
+                className="input-editorial resize-none"
+                rows={3}
                 placeholder="Describir alergias conocidas..."
                 {...register("allergies")}
+                style={{ paddingTop: "0.5rem" }}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="medicalConditions">Condiciones medicas</Label>
-              <Textarea
-                id="medicalConditions"
+            </EditField>
+            <EditField label="Condiciones medicas">
+              <textarea
+                className="input-editorial resize-none"
+                rows={3}
                 placeholder="Condiciones medicas preexistentes..."
                 {...register("medicalConditions")}
+                style={{ paddingTop: "0.5rem" }}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="currentMedication">Medicacion actual</Label>
-              <Textarea
-                id="currentMedication"
+            </EditField>
+            <EditField label="Medicacion actual">
+              <textarea
+                className="input-editorial resize-none"
+                rows={3}
                 placeholder="Medicamentos que toma actualmente..."
                 {...register("currentMedication")}
+                style={{ paddingTop: "0.5rem" }}
               />
-            </div>
-          </CardContent>
+            </EditField>
+          </div>
         )}
-      </Card>
+      </section>
 
+      {/* Error global */}
       {error && (
-        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+        <div
+          role="alert"
+          className="rounded px-3 py-2 text-sm"
+          style={{
+            background: "var(--terracotta-100)",
+            color: "var(--terracotta-700)",
+            fontFamily: "var(--font-inter)",
+            border: "1px solid var(--terracotta-200)",
+          }}
+        >
           {error}
         </div>
       )}
 
-      <div className="flex gap-3">
-        <Button type="submit" disabled={submitting} className="gap-2">
-          {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-          {submitLabel}
-        </Button>
+      {/* Submit */}
+      <div className="flex items-center gap-3">
+        <button
+          type="submit"
+          disabled={submitting}
+          className="flex items-center gap-2 rounded px-5 py-2.5 text-sm font-medium transition-colors disabled:opacity-60"
+          style={{
+            background: "var(--forest-900)",
+            color: "var(--cream-25)",
+            fontFamily: "var(--font-inter)",
+            cursor: submitting ? "not-allowed" : "pointer",
+          }}
+        >
+          {submitting && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+          {submitting ? "Guardando..." : submitLabel}
+        </button>
       </div>
     </form>
+  );
+}
+
+// Helper field editorial
+function EditField({
+  label,
+  required,
+  error,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1">
+      <label
+        className="label-editorial"
+        style={{ display: "block" }}
+      >
+        {label}
+        {required && (
+          <span aria-hidden="true" style={{ color: "var(--terracotta-700)", marginLeft: "2px" }}>*</span>
+        )}
+      </label>
+      {children}
+      {error && (
+        <p
+          className="text-xs"
+          role="alert"
+          style={{ color: "var(--terracotta-700)", fontFamily: "var(--font-inter)" }}
+        >
+          {error}
+        </p>
+      )}
+    </div>
   );
 }

@@ -1,0 +1,16 @@
+proyecto: "vetconnect"
+tipo: "web"
+estructura: "monorepo"
+stack:
+  frontend: "Next.js 16 + shadcn/ui + Tailwind CSS"
+  backend: "Hono + Drizzle + PostgreSQL"
+  db: "PostgreSQL (Oracle Cloud VPS 161.153.203.83)"
+fase_actual: "fase_5_publicacion"
+certificacion:
+  status: "CERTIFIED"
+  a11y_violations: 0
+  seo_tier: "full"
+publicacion:
+  deploy_target: "netlify"
+  api_deploy: "VPS Oracle Cloud 161.153.203.83 con nginx + PM2"
+ultimo_save: "2026-04-11T04:20:00Z"

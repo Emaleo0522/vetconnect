@@ -1,16 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuthStore, type UserRole } from "@/lib/auth";
 import { api, ApiError } from "@/lib/api";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
-
-function resolveUrl(path: string | null | undefined): string | undefined {
-  if (!path) return undefined;
-  if (path.startsWith("/")) return `${API_URL}${path}`;
-  return path;
-}
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { LogOut, Save, User, Camera } from "lucide-react";
+import { LogOut, Save, User, Camera, Loader2 } from "lucide-react";
 
 const ROLE_LABELS: Record<string, string> = {
   owner: "Dueno de mascota",
@@ -29,7 +21,7 @@ const ROLE_LABELS: Record<string, string> = {
 
 const ROLE_COLORS: Record<string, string> = {
   owner: "bg-primary/10 text-primary",
-  vet: "bg-[#4CAF7D]/10 text-[#4CAF7D]",
+  vet: "bg-forest-50 text-forest-700",
   org: "bg-accent/10 text-accent-foreground",
   admin: "bg-destructive/10 text-destructive",
 };
@@ -62,23 +54,12 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
-  // Editable fields — basic
+  // Editable fields
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-
-  // Editable fields — vet
-  const [clinicName, setClinicName] = useState("");
-  const [clinicAddress, setClinicAddress] = useState("");
-  const [clinicPhone, setClinicPhone] = useState("");
-  const [specialtiesInput, setSpecialtiesInput] = useState(""); // comma-separated
-
-  // Editable fields — org
-  const [orgName, setOrgName] = useState("");
-  const [orgType, setOrgType] = useState("");
-  const [orgAddress, setOrgAddress] = useState("");
-  const [orgWebsite, setOrgWebsite] = useState("");
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function loadProfile() {
@@ -87,16 +68,6 @@ export default function ProfilePage() {
         setProfile(data);
         setName(data.name);
         setPhone(data.phone ?? "");
-        // Vet fields
-        setClinicName(data.clinicName ?? "");
-        setClinicAddress(data.clinicAddress ?? "");
-        setClinicPhone(data.clinicPhone ?? "");
-        setSpecialtiesInput((data.specialties ?? []).join(", "));
-        // Org fields
-        setOrgName(data.orgName ?? "");
-        setOrgType(data.orgType ?? "");
-        setOrgAddress(data.address ?? "");
-        setOrgWebsite(data.website ?? "");
       } catch {
         // handled
       } finally {
@@ -106,76 +77,18 @@ export default function ProfilePage() {
     loadProfile();
   }, []);
 
-  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const allowed = ["image/jpeg", "image/png", "image/webp"];
-    if (!allowed.includes(file.type)) {
-      toast.error("Solo se permiten imágenes JPG, PNG o WebP");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("La imagen no puede superar 5 MB");
-      return;
-    }
-
-    setIsUploadingAvatar(true);
-    try {
-      const updated = await api.upload<{ avatarUrl: string }>(
-        "/api/users/me/avatar",
-        "avatar",
-        file
-      );
-      setProfile((prev) => prev ? { ...prev, image: updated.avatarUrl } : prev);
-      await checkSession();
-      toast.success("Foto de perfil actualizada");
-    } catch (err) {
-      if (err instanceof ApiError) {
-        toast.error(err.message);
-      } else {
-        toast.error("Error al subir la foto");
-      }
-    } finally {
-      setIsUploadingAvatar(false);
-      // Reset file input
-      e.target.value = "";
-    }
-  }
-
   async function handleSave() {
     if (!name.trim()) {
       toast.error("El nombre es obligatorio");
       return;
     }
 
-    const currentRole = profile?.role ?? user?.role ?? "owner";
-
     setIsSaving(true);
     try {
-      const body: Record<string, unknown> = {
+      const updated = await api.put<ProfileData>("/api/users/me/profile", {
         name: name.trim(),
         phone: phone.trim() || null,
-      };
-
-      if (currentRole === "vet") {
-        body.clinicName = clinicName.trim() || null;
-        body.clinicAddress = clinicAddress.trim() || null;
-        body.clinicPhone = clinicPhone.trim() || null;
-        body.specialties = specialtiesInput
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
-      }
-
-      if (currentRole === "org") {
-        body.orgName = orgName.trim() || null;
-        body.orgType = orgType.trim() || null;
-        body.address = orgAddress.trim() || null;
-        body.website = orgWebsite.trim() || null;
-      }
-
-      const updated = await api.put<ProfileData>("/api/users/me/profile", body);
+      });
       setProfile(updated);
       toast.success("Perfil actualizado");
       // Refresh auth store session
@@ -188,6 +101,42 @@ export default function ProfilePage() {
       }
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      toast.error("Solo se permiten imagenes JPEG, PNG o WebP");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("La imagen no puede superar 5MB");
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const result = await api.upload<{ avatarUrl: string }>(
+        "/api/users/me/avatar",
+        "avatar",
+        file,
+      );
+      setProfile((prev) => (prev ? { ...prev, image: result.avatarUrl } : prev));
+      toast.success("Foto de perfil actualizada");
+      await checkSession();
+    } catch (err) {
+      if (err instanceof ApiError) {
+        toast.error(err.message);
+      } else {
+        toast.error("Error al subir la foto");
+      }
+    } finally {
+      setUploadingAvatar(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
     }
   }
 
@@ -231,31 +180,32 @@ export default function ProfilePage() {
               <div className="relative">
                 <Avatar className="h-20 w-20" size="lg">
                   {profile?.image && (
-                    <AvatarImage src={resolveUrl(profile.image)} alt={profile.name} />
+                    <AvatarImage src={profile.image} alt={profile.name} />
                   )}
                   <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
-                <label
-                  htmlFor="avatar-upload"
-                  className="absolute bottom-0 right-0 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-within:ring-2 focus-within:ring-ring"
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={handleAvatarUpload}
+                />
+                <button
+                  type="button"
+                  disabled={uploadingAvatar}
+                  className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
                   aria-label="Cambiar foto de perfil"
+                  onClick={() => avatarInputRef.current?.click()}
                 >
-                  {isUploadingAvatar ? (
-                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  {uploadingAvatar ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   ) : (
                     <Camera className="h-3.5 w-3.5" />
                   )}
-                  <input
-                    id="avatar-upload"
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="sr-only"
-                    onChange={handleAvatarChange}
-                    disabled={isUploadingAvatar}
-                  />
-                </label>
+                </button>
               </div>
 
               <div className="flex-1 text-center sm:text-left">
@@ -344,64 +294,35 @@ export default function ProfilePage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="vet-clinic-name">Clinica</Label>
+                    <Label>Clinica</Label>
                     <Input
-                      id="vet-clinic-name"
-                      value={clinicName}
-                      onChange={(e) => setClinicName(e.target.value)}
-                      placeholder="Nombre de la clínica"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="vet-clinic-address">Direccion de la clinica</Label>
-                    <Input
-                      id="vet-clinic-address"
-                      value={clinicAddress}
-                      onChange={(e) => setClinicAddress(e.target.value)}
-                      placeholder="Av. Ejemplo 1234, Ciudad"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="vet-clinic-phone">Telefono de la clinica</Label>
-                    <Input
-                      id="vet-clinic-phone"
-                      value={clinicPhone}
-                      onChange={(e) => setClinicPhone(e.target.value)}
-                      placeholder="+54 11 1234-5678"
-                      type="tel"
+                      value={profile.clinicName ?? ""}
+                      disabled
+                      className="opacity-60"
                     />
                   </div>
                   <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="vet-specialties">Especialidades</Label>
-                    <Input
-                      id="vet-specialties"
-                      value={specialtiesInput}
-                      onChange={(e) => setSpecialtiesInput(e.target.value)}
-                      placeholder="Ej: Cirugía, Dermatología, Oncología (separadas por coma)"
-                    />
-                    {specialtiesInput.trim() && (
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {specialtiesInput
-                          .split(",")
-                          .map((s) => s.trim())
-                          .filter(Boolean)
-                          .map((s) => (
-                            <Badge
-                              key={s}
-                              className="bg-[#4CAF7D]/10 text-[#4CAF7D] border-[#4CAF7D]/20"
-                            >
-                              {s}
-                            </Badge>
-                          ))}
-                      </div>
-                    )}
+                    <Label>Especialidades</Label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(profile.specialties ?? []).map((s) => (
+                        <Badge
+                          key={s}
+                          style={{
+                            background: "var(--forest-50)",
+                            color: "var(--forest-700)",
+                            borderColor: "var(--forest-200)",
+                          }}
+                        >
+                          {s}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-muted-foreground">Guardia 24h:</span>
                     <span className="font-medium">
                       {profile.isEmergency24h ? "Si" : "No"}
                     </span>
-                    <span className="text-xs text-muted-foreground">(configurable en Mis Horarios)</span>
                   </div>
                 </div>
               </div>
@@ -415,40 +336,35 @@ export default function ProfilePage() {
                 </h3>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="org-name">Nombre organizacion</Label>
+                    <Label>Nombre organizacion</Label>
                     <Input
-                      id="org-name"
-                      value={orgName}
-                      onChange={(e) => setOrgName(e.target.value)}
-                      placeholder="Nombre de la organización"
+                      value={profile.orgName ?? ""}
+                      disabled
+                      className="opacity-60"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="org-type">Tipo</Label>
+                    <Label>Tipo</Label>
                     <Input
-                      id="org-type"
-                      value={orgType}
-                      onChange={(e) => setOrgType(e.target.value)}
-                      placeholder="Ej: Refugio, Fundación, ONG"
+                      value={profile.orgType ?? ""}
+                      disabled
+                      className="opacity-60"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="org-address">Direccion</Label>
+                    <Label>Direccion</Label>
                     <Input
-                      id="org-address"
-                      value={orgAddress}
-                      onChange={(e) => setOrgAddress(e.target.value)}
-                      placeholder="Av. Ejemplo 1234, Ciudad"
+                      value={profile.address ?? ""}
+                      disabled
+                      className="opacity-60"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="org-website">Sitio web</Label>
+                    <Label>Sitio web</Label>
                     <Input
-                      id="org-website"
-                      value={orgWebsite}
-                      onChange={(e) => setOrgWebsite(e.target.value)}
-                      placeholder="https://www.ejemplo.org"
-                      type="url"
+                      value={profile.website ?? ""}
+                      disabled
+                      className="opacity-60"
                     />
                   </div>
                 </div>

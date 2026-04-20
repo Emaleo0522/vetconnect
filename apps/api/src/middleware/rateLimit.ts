@@ -80,17 +80,17 @@ export function createRateLimiter(opts: {
 // Pre-configured rate limiters
 // ---------------------------------------------------------------------------
 
-/** Login/sign-in: 5 requests per minute */
+/** Login/sign-in: 5 requests per 15 minutes (security-spec: brute-force protection) */
 export const loginRateLimit = createRateLimiter({
   maxRequests: 5,
-  windowMs: 60_000,
+  windowMs: 15 * 60_000, // 15 minutes
   prefix: "login",
 });
 
-/** Registration: 3 requests per minute */
+/** Registration: 3 requests per hour (security-spec: account creation spam) */
 export const registerRateLimit = createRateLimiter({
   maxRequests: 3,
-  windowMs: 60_000,
+  windowMs: 60 * 60_000, // 1 hour
   prefix: "register",
 });
 
@@ -113,4 +113,11 @@ export const generalRateLimit = createRateLimiter({
   maxRequests: 100,
   windowMs: 60_000,
   prefix: "general",
+});
+
+/** Vets list: 60 requests per minute (security-spec) */
+export const vetsListRateLimit = createRateLimiter({
+  maxRequests: 60,
+  windowMs: 60_000,
+  prefix: "vets-list",
 });

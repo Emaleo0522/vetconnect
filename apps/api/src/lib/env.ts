@@ -12,8 +12,9 @@ dotenv.config({ path: resolve(__dirname, "../../.env") });
 const envSchema = z.object({
   DATABASE_URL: z.string().url().startsWith("postgresql://"),
   PORT: z.coerce.number().int().min(1).max(65535).default(3001),
-  CORS_ORIGINS: z.string().default("http://localhost:8081"),
+  CORS_ORIGINS: z.string().default("http://localhost:5173,http://localhost:3000,http://localhost:8081"),
   BETTER_AUTH_SECRET: z.string().min(16),
+  BETTER_AUTH_URL: z.string().url().optional(),
   ENCRYPTION_KEY: z.string().min(16),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 });

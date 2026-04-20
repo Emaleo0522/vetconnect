@@ -23,3 +23,12 @@ export * from "./schedules.js";
 
 // Notifications & push tokens
 export * from "./notifications.js";
+
+// Appointments & favorites
+export * from "./appointments.js";
+
+// Lost reports & sightings
+export * from "./lost.js";
+
+// Community (posts, likes, comments, reports, hides)
+export * from "./community.js";

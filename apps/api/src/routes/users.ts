@@ -27,7 +27,6 @@ usersRouter.post("/api/users/register/owner", async (c) => {
   if (!parsed.success) {
     return c.json(
       {
-        success: false,
         error: {
           code: "VALIDATION_ERROR",
           message: "Invalid input",
@@ -40,14 +39,13 @@ usersRouter.post("/api/users/register/owner", async (c) => {
 
   try {
     const result = await registerOwner(parsed.data);
-    return c.json({ success: true, data: result }, 201);
+    // T9: Return flat contract {user} — no {success, data} wrapper.
+    // Session is established when client calls POST /api/auth/sign-in/email.
+    return c.json(result, 201);
   } catch (err) {
     if (err instanceof DuplicateEmailError) {
       return c.json(
-        {
-          success: false,
-          error: { code: "DUPLICATE_EMAIL", message: err.message },
-        },
+        { error: { code: "DUPLICATE_EMAIL", message: err.message } },
         409
       );
     }
@@ -65,7 +63,6 @@ usersRouter.post("/api/users/register/vet", async (c) => {
   if (!parsed.success) {
     return c.json(
       {
-        success: false,
         error: {
           code: "VALIDATION_ERROR",
           message: "Invalid input",
@@ -78,14 +75,11 @@ usersRouter.post("/api/users/register/vet", async (c) => {
 
   try {
     const result = await registerVet(parsed.data);
-    return c.json({ success: true, data: result }, 201);
+    return c.json(result, 201);
   } catch (err) {
     if (err instanceof DuplicateEmailError) {
       return c.json(
-        {
-          success: false,
-          error: { code: "DUPLICATE_EMAIL", message: err.message },
-        },
+        { error: { code: "DUPLICATE_EMAIL", message: err.message } },
         409
       );
     }
@@ -103,7 +97,6 @@ usersRouter.post("/api/users/register/org", async (c) => {
   if (!parsed.success) {
     return c.json(
       {
-        success: false,
         error: {
           code: "VALIDATION_ERROR",
           message: "Invalid input",
@@ -116,14 +109,11 @@ usersRouter.post("/api/users/register/org", async (c) => {
 
   try {
     const result = await registerOrg(parsed.data);
-    return c.json({ success: true, data: result }, 201);
+    return c.json(result, 201);
   } catch (err) {
     if (err instanceof DuplicateEmailError) {
       return c.json(
-        {
-          success: false,
-          error: { code: "DUPLICATE_EMAIL", message: err.message },
-        },
+        { error: { code: "DUPLICATE_EMAIL", message: err.message } },
         409
       );
     }
