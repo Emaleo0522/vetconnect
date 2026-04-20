@@ -19,7 +19,7 @@ interface PetsResponse {
 
 const SPECIES_OPTIONS = ["Perro", "Gato", "Ave", "Conejo", "Otro"];
 const CONTACT_OPTIONS = [
-  { value: "whatsapp", label: "WhatsApp" },
+  { value: "app", label: "App (VetConnect)" },
   { value: "phone", label: "Teléfono" },
   { value: "email", label: "Email" },
 ];
@@ -51,7 +51,7 @@ export default function NuevoReportePage() {
   const [lostDate, setLostDate] = useState("");
   const [lostTime, setLostTime] = useState("");
   const [description, setDescription] = useState("");
-  const [contactPreference, setContactPreference] = useState("whatsapp");
+  const [contactPreference, setContactPreference] = useState("app");
   const [contactValue, setContactValue] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -177,53 +177,45 @@ export default function NuevoReportePage() {
     setSubmitError(null);
 
     try {
-      const lostAt = lostDate
+      // Backend expects: petId (required), description (min 10), lastSeenAt (ISO),
+      // lat (number), lng (number), contactPreference ("app"|"phone"|"email")
+      if (!useQuickPet && !selectedPetId) {
+        setErrors({ pet: "Seleccioná una mascota" });
+        setIsSubmitting(false);
+        return;
+      }
+      if (useQuickPet) {
+        // Quick pet mode not supported by backend schema — petId is required
+        setErrors({ pet: "El backend requiere una mascota registrada. Registrá tu mascota primero." });
+        setIsSubmitting(false);
+        return;
+      }
+
+      const lastSeenAt = lostDate
         ? lostTime
-          ? new Date(`${lostDate}T${lostTime}`).toISOString()
-          : new Date(lostDate).toISOString()
+          ? new Date(`${lostDate}T${lostTime}:00`).toISOString()
+          : new Date(`${lostDate}T12:00:00`).toISOString()
         : new Date().toISOString();
 
+      // lat/lng required as numbers — fallback to Buenos Aires if no geolocation
+      const lat = coords?.lat ?? -34.6037;
+      const lng = coords?.lng ?? -58.3816;
+
+      // description is required (min 10 chars)
+      const descriptionText = description.trim() || manualZone.trim() || "Sin descripción adicional.";
+
       const body = {
-        petId: useQuickPet ? null : selectedPetId || null,
-        petName: useQuickPet ? quickPetName.trim() : null,
-        petSpecies: useQuickPet ? quickPetSpecies : null,
-        lostAt,
-        latitude: coords?.lat ?? null,
-        longitude: coords?.lng ?? null,
-        approximateZone: manualZone.trim() || null,
-        description: description.trim() || null,
-        contactPreference,
-        contactValue: contactValue.trim(),
+        petId: selectedPetId,
+        description: descriptionText.length >= 10 ? descriptionText : descriptionText + " (reportado por el dueño)",
+        lastSeenAt,
+        lat,
+        lng,
+        contactPreference: contactPreference as "app" | "phone" | "email",
+        reward: undefined as string | undefined,
       };
 
-      // If photo exists, upload via form data
-      let reportId: string;
-      if (photoFile) {
-        const formData = new FormData();
-        formData.append("photo", photoFile);
-        Object.entries(body).forEach(([k, v]) => {
-          if (v !== null && v !== undefined) formData.append(k, String(v));
-        });
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"}/api/lost-reports`,
-          {
-            method: "POST",
-            body: formData,
-            credentials: "include",
-          },
-        );
-        if (!res.ok) {
-          const json = await res.json();
-          throw new Error(
-            json?.error?.message ?? "Error al crear el reporte",
-          );
-        }
-        const json = await res.json();
-        reportId = json.data?.id ?? json.id;
-      } else {
-        const result = await api.post<{ id: string }>("/api/lost-reports", body);
-        reportId = result.id;
-      }
+      const result = await api.post<{ id: string }>("/api/lost-reports", body);
+      const reportId = result.id;
 
       router.push(`/dashboard/perdidos/${reportId}`);
     } catch (err) {

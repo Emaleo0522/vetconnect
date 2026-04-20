@@ -123,12 +123,19 @@ export function AppointmentModal({
     setSubmitError(null);
 
     try {
-      const scheduledAt = new Date(`${selectedDate}T${selectedSlot}:00`).toISOString();
+      // Build ISO datetime in Argentina timezone (UTC-3)
+      // Use the local date/time as-is, converting to UTC by assuming America/Argentina/Buenos_Aires (UTC-3)
+      const localDateTimeStr = `${selectedDate}T${selectedSlot}:00`;
+      const localDate = new Date(localDateTimeStr);
+      // Argentina is UTC-3 (no DST), so offset the time to get correct UTC ISO
+      const argOffset = 3 * 60; // minutes
+      const utcMs = localDate.getTime() + argOffset * 60 * 1000;
+      const scheduledAt = new Date(utcMs).toISOString();
       const result = await api.post<{ id: string }>("/api/appointments", {
-        vetId,
+        vetProfileId: vetId,
         petId: selectedPetId,
         scheduledAt,
-        reason: reason.trim() || null,
+        reason: reason.trim() || undefined,
       });
       setNewAppointmentId(result.id);
       setSuccess(true);
@@ -182,9 +189,10 @@ export function AppointmentModal({
         aria-hidden="true"
       />
 
-      {/* Modal */}
+      {/* Modal — mobile: bottom-sheet (fixed bottom, full width, top-rounded)
+                  desktop (sm+): centered dialog with max-w and max-h */}
       <div
-        className="fixed inset-x-4 bottom-0 top-16 z-50 overflow-y-auto rounded-t-2xl sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl"
+        className="fixed bottom-0 left-0 right-0 z-50 overflow-y-auto rounded-t-2xl sm:inset-auto sm:left-1/2 sm:top-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl"
         style={{
           background: "var(--cream-50)",
           border: "1px solid var(--border)",

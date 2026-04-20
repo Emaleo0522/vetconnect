@@ -163,7 +163,7 @@ export default function VeterinariesPage() {
       if (isFavorite) {
         await api.delete(`/api/users/me/favorites/${vetId}`);
       } else {
-        await api.post(`/api/users/me/favorites`, { vetId });
+        await api.post(`/api/users/me/favorites`, { vetProfileId: vetId });
       }
     } catch {
       // Revert on error

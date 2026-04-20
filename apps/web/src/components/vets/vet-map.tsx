@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { VetListItem } from "./vet-card";
 
 interface VetMapProps {
@@ -9,9 +9,16 @@ interface VetMapProps {
   singleVet?: boolean;
 }
 
+// Default center: Buenos Aires
+const DEFAULT_CENTER: [number, number] = [-34.6037, -58.3816];
+const DEFAULT_ZOOM = 11;
+
 export function VetMap({ vets, className, singleVet = false }: VetMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  const userMarkerRef = useRef<L.Marker | null>(null);
+  const [geoDenied, setGeoDenied] = useState(false);
+  const [geoLoading, setGeoLoading] = useState(false);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -59,23 +66,30 @@ export function VetMap({ vets, className, singleVet = false }: VetMapProps) {
           !isNaN(Number(v.longitude)),
       );
 
-      // Default center: Buenos Aires
-      const defaultCenter: [number, number] = [-34.6037, -58.3816];
-
       // Try to center on user location (list view only)
       let userCenter: [number, number] | null = null;
       if (!singleVet && navigator.geolocation) {
+        setGeoLoading(true);
         await new Promise<void>((resolve) => {
           navigator.geolocation.getCurrentPosition(
             (pos) => {
               userCenter = [pos.coords.latitude, pos.coords.longitude];
+              setGeoLoading(false);
               resolve();
             },
-            () => resolve(),
-            { timeout: 4000 },
+            (err) => {
+              if (err.code === err.PERMISSION_DENIED) {
+                setGeoDenied(true);
+              }
+              setGeoLoading(false);
+              resolve();
+            },
+            { timeout: 6000, enableHighAccuracy: false },
           );
         });
       }
+
+      if (cancelled || !mapRef.current) return;
 
       const center =
         singleVet && validVets.length > 0
@@ -83,34 +97,34 @@ export function VetMap({ vets, className, singleVet = false }: VetMapProps) {
               Number(validVets[0].latitude),
               Number(validVets[0].longitude),
             ] as [number, number])
-          : (userCenter ?? defaultCenter);
+          : (userCenter ?? DEFAULT_CENTER);
 
       const map = L.map(mapRef.current!, {
         center,
-        zoom: singleVet ? 15 : 12,
+        zoom: singleVet ? 15 : userCenter ? 13 : DEFAULT_ZOOM,
         scrollWheelZoom: !singleVet,
+      });
+
+      const userIcon = L.divIcon({
+        html: `<div style="
+          width: 14px;
+          height: 14px;
+          background: #C07A5A;
+          border: 3px solid white;
+          border-radius: 50%;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        "></div>`,
+        className: "",
+        iconSize: [14, 14],
+        iconAnchor: [7, 7],
       });
 
       // User location marker (list view)
       if (!singleVet && userCenter) {
-        const userIcon = L.divIcon({
-          html: `<div style="
-            width: 14px;
-            height: 14px;
-            background: var(--terracotta-500, #C07A5A);
-            border: 3px solid white;
-            border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-          "></div>`,
-          className: "",
-          iconSize: [14, 14],
-          iconAnchor: [7, 7],
-        });
-        L.marker(userCenter, { icon: userIcon })
+        const marker = L.marker(userCenter, { icon: userIcon })
           .addTo(map)
-          .bindPopup(
-            '<strong style="font-family:sans-serif">Tu ubicación</strong>',
-          );
+          .bindPopup('<strong style="font-family:sans-serif">Tu ubicacion</strong>');
+        userMarkerRef.current = marker;
       }
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -123,11 +137,10 @@ export function VetMap({ vets, className, singleVet = false }: VetMapProps) {
         const lat = Number(vet.latitude);
         const lng = Number(vet.longitude);
 
-        // Custom forest icon — NOT default Leaflet blue pin
         const marker = L.marker([lat, lng], { icon: forestIcon }).addTo(map);
 
         const ratingHtml = vet.avgRating
-          ? `<br/><span style="color:#C49A2A;font-size:12px">★ ${vet.avgRating.toFixed(1)} (${vet.reviewCount})</span>`
+          ? `<br/><span style="color:#C49A2A;font-size:12px">&#9733; ${vet.avgRating.toFixed(1)} (${vet.reviewCount})</span>`
           : "";
 
         marker.bindPopup(
@@ -138,14 +151,14 @@ export function VetMap({ vets, className, singleVet = false }: VetMapProps) {
             ${ratingHtml}
             ${
               !singleVet
-                ? `<br/><a href="/dashboard/vets/${vet.id}" style="color:#1F3C2E;font-size:12px;font-weight:500">Ver perfil →</a>`
+                ? `<br/><a href="/dashboard/veterinarios/${vet.id}" style="color:#1F3C2E;font-size:12px;font-weight:500">Ver perfil &#8594;</a>`
                 : ""
             }
           </div>`,
         );
       }
 
-      // fitBounds only if no user geolocation reference
+      // fitBounds only if no user geolocation reference and multiple vets
       if (!singleVet && !userCenter && validVets.length > 1) {
         const bounds = L.latLngBounds(
           validVets.map(
@@ -169,13 +182,89 @@ export function VetMap({ vets, className, singleVet = false }: VetMapProps) {
     };
   }, [vets, singleVet]);
 
+  // Recenter on user location (retry button)
+  async function handleRecenter() {
+    if (!mapInstanceRef.current || !navigator.geolocation) return;
+    setGeoLoading(true);
+    setGeoDenied(false);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const L = (await import("leaflet")).default;
+        const map = mapInstanceRef.current;
+        if (!map) { setGeoLoading(false); return; }
+
+        const userCoords: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+        map.setView(userCoords, 13);
+
+        // Remove old user marker, add new one
+        if (userMarkerRef.current) {
+          userMarkerRef.current.remove();
+        }
+        const userIcon = L.divIcon({
+          html: `<div style="
+            width: 14px;
+            height: 14px;
+            background: #C07A5A;
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+          "></div>`,
+          className: "",
+          iconSize: [14, 14],
+          iconAnchor: [7, 7],
+        });
+        userMarkerRef.current = L.marker(userCoords, { icon: userIcon })
+          .addTo(map)
+          .bindPopup('<strong style="font-family:sans-serif">Tu ubicacion</strong>');
+
+        setGeoLoading(false);
+      },
+      (err) => {
+        if (err.code === err.PERMISSION_DENIED) setGeoDenied(true);
+        setGeoLoading(false);
+      },
+      { timeout: 8000, enableHighAccuracy: false },
+    );
+  }
+
   return (
-    <div
-      ref={mapRef}
-      className={className}
-      style={{ minHeight: singleVet ? 250 : 400 }}
-      role="application"
-      aria-label="Mapa de veterinarios"
-    />
+    <div className="relative">
+      <div
+        ref={mapRef}
+        className={className}
+        style={{ minHeight: singleVet ? 250 : 400 }}
+        role="application"
+        aria-label="Mapa de veterinarios"
+      />
+      {/* Geolocation button — list view only */}
+      {!singleVet && (
+        <button
+          type="button"
+          onClick={handleRecenter}
+          disabled={geoLoading}
+          title={geoDenied ? "Permiso denegado — revisar configuracion del navegador" : "Centrar en mi ubicacion"}
+          aria-label="Centrar mapa en mi ubicacion"
+          className="absolute bottom-4 right-4 z-[1000] flex h-9 w-9 items-center justify-center rounded-full shadow-md transition-colors disabled:opacity-50"
+          style={{
+            background: geoDenied ? "#f5efe0" : "#1F3C2E",
+            color: geoDenied ? "#7A6A5A" : "#F5EFE0",
+            border: "2px solid rgba(255,255,255,0.9)",
+          }}
+        >
+          {geoLoading ? (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite" }}>
+              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+              <path d="M12 8a4 4 0 1 0 4 4" />
+            </svg>
+          )}
+        </button>
+      )}
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+    </div>
   );
 }

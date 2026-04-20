@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuthStore, type UserRole } from "@/lib/auth";
-import { Loader2, PawPrint, Stethoscope, Building2, ChevronLeft } from "lucide-react";
+import { Loader2, PawPrint, Stethoscope, Building2, ChevronLeft, MapPin } from "lucide-react";
 
 type RoleOption = "owner" | "vet" | "org";
 
@@ -80,12 +80,33 @@ export default function RegisterPage() {
   const [clinicName, setClinicName] = useState("");
   const [clinicAddress, setClinicAddress] = useState("");
   const [clinicPhone, setClinicPhone] = useState("");
+  const [vetLatitude, setVetLatitude] = useState<number>(-34.6037);
+  const [vetLongitude, setVetLongitude] = useState<number>(-58.3816);
+  const [geoLocating, setGeoLocating] = useState(false);
+  const [geoLocated, setGeoLocated] = useState(false);
 
   // Campos org
   const [orgName, setOrgName] = useState("");
   const [orgType, setOrgType] = useState<"shelter" | "rescue" | "foundation" | "other">("shelter");
   const [orgAddress, setOrgAddress] = useState("");
   const [website, setWebsite] = useState("");
+
+  function requestVetGeolocation() {
+    if (!navigator.geolocation) return;
+    setGeoLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setVetLatitude(pos.coords.latitude);
+        setVetLongitude(pos.coords.longitude);
+        setGeoLocated(true);
+        setGeoLocating(false);
+      },
+      () => {
+        setGeoLocating(false);
+      },
+      { timeout: 8000, enableHighAccuracy: false },
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -113,8 +134,8 @@ export default function RegisterPage() {
           clinicName,
           clinicAddress,
           clinicPhone,
-          latitude: -34.6037,
-          longitude: -58.3816,
+          latitude: vetLatitude,
+          longitude: vetLongitude,
         });
       } else if (role === "org") {
         await registerOrg({
@@ -453,6 +474,48 @@ export default function RegisterPage() {
                   required
                 />
               </FormField>
+
+              {/* Geolocation — capture clinic coordinates */}
+              <div className="space-y-2">
+                <p
+                  className="label-editorial"
+                  style={{ fontFamily: "var(--font-inter)", color: "var(--warm-700)" }}
+                >
+                  Ubicacion de la clinica
+                </p>
+                <button
+                  type="button"
+                  onClick={requestVetGeolocation}
+                  disabled={geoLocating}
+                  className="flex items-center gap-2 rounded px-3 py-2 text-sm font-medium transition-colors disabled:opacity-50"
+                  style={{
+                    border: "1px solid var(--forest-900)",
+                    color: geoLocated ? "var(--forest-700)" : "var(--forest-900)",
+                    background: geoLocated ? "var(--forest-50)" : "transparent",
+                    fontFamily: "var(--font-inter)",
+                    cursor: geoLocating ? "not-allowed" : "pointer",
+                  }}
+                >
+                  {geoLocating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  ) : (
+                    <MapPin className="h-4 w-4" aria-hidden="true" />
+                  )}
+                  {geoLocating
+                    ? "Obteniendo..."
+                    : geoLocated
+                      ? "Ubicacion capturada"
+                      : "Usar mi ubicacion actual"}
+                </button>
+                <p
+                  className="text-xs"
+                  style={{ fontFamily: "var(--font-inter)", color: "var(--warm-400)" }}
+                >
+                  {geoLocated
+                    ? `Lat: ${vetLatitude.toFixed(5)}, Lng: ${vetLongitude.toFixed(5)}`
+                    : "Si no usas ubicacion, se usara Buenos Aires por defecto"}
+                </p>
+              </div>
             </div>
           )}
 
