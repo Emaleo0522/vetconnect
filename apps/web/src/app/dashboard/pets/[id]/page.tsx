@@ -744,7 +744,7 @@ export default function PetDetailPage({
 
       {/* Tabs editoriales */}
       <Tabs defaultValue="info">
-        <TabsList variant="line" className="w-full overflow-x-auto scrollbar-none flex-nowrap">
+        <TabsList variant="line" className="w-full overflow-x-auto scrollbar-none flex-nowrap pl-1 sm:pl-0">
           <TabsTrigger value="info" className="gap-1.5 shrink-0">
             <Info className="h-3.5 w-3.5" aria-hidden="true" />
             Información

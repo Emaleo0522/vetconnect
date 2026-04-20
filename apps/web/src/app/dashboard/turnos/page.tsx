@@ -12,7 +12,8 @@ import {
   Loader2,
 } from "lucide-react";
 
-type AppointmentStatus = "scheduled" | "completed" | "cancelled";
+// El backend usa: pending | confirmed | completed | cancelled | no_show
+type AppointmentStatus = "pending" | "confirmed" | "scheduled" | "completed" | "cancelled" | "no_show";
 
 interface Appointment {
   id: string;
@@ -310,7 +311,8 @@ export default function TurnosPage() {
     setCancellingId(id);
     setCancelError(null);
     try {
-      await api.patch(`/api/appointments/${id}`, { status: "cancelled" });
+      // El backend expone DELETE /api/appointments/:id para cancelar (soft delete)
+      await api.delete(`/api/appointments/${id}`);
       setAppointments((prev) =>
         prev.map((a) =>
           a.id === id ? { ...a, status: "cancelled" as AppointmentStatus } : a,
@@ -329,13 +331,20 @@ export default function TurnosPage() {
 
   const now = new Date();
 
+  // El backend crea turnos con status "pending"; también puede ser "confirmed".
+  // Upcoming: no cancelado, no completado, fecha futura
   const upcoming = appointments.filter(
-    (a) => a.status === "scheduled" && new Date(a.scheduledAt) >= now,
+    (a) =>
+      (a.status === "pending" || a.status === "confirmed" || a.status === "scheduled") &&
+      new Date(a.scheduledAt) >= now,
   );
+  // Past: completado, no_show, o fecha pasada sin cancelar
   const past = appointments.filter(
     (a) =>
       a.status === "completed" ||
-      (a.status === "scheduled" && new Date(a.scheduledAt) < now),
+      a.status === "no_show" ||
+      ((a.status === "pending" || a.status === "confirmed" || a.status === "scheduled") &&
+        new Date(a.scheduledAt) < now),
   );
   const cancelled = appointments.filter((a) => a.status === "cancelled");
 

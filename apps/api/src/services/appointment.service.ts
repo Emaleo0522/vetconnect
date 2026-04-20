@@ -173,7 +173,7 @@ export async function createAppointment(
     .limit(1);
 
   if (pet.length === 0) {
-    throw new AppointmentError("PET_NOT_FOUND", "Pet not found or does not belong to you");
+    throw new AppointmentError("PET_NOT_FOUND", "Mascota no encontrada o no te pertenece");
   }
 
   // 2. Verify vet profile exists
@@ -184,12 +184,18 @@ export async function createAppointment(
     .limit(1);
 
   if (vetProfile.length === 0) {
-    throw new AppointmentError("VET_NOT_FOUND", "Veterinarian not found");
+    throw new AppointmentError("VET_NOT_FOUND", "Veterinario no encontrado");
   }
 
   // 3. Verify day of week and schedule
-  const dayOfWeek = scheduledAt.getDay(); // 0=Sunday
-  const timeStr = scheduledAt.toTimeString().slice(0, 5); // HH:MM
+  // Convertir scheduledAt (UTC) a hora ART (UTC-3) para comparar con el
+  // horario del veterinario, que está guardado en hora Argentina.
+  const artOffsetMs = -3 * 60 * 60 * 1000; // UTC-3, sin DST
+  const scheduledAtART = new Date(scheduledAt.getTime() + artOffsetMs);
+  const dayOfWeek = scheduledAtART.getUTCDay(); // usar UTC* sobre fecha desplazada
+  const artHH = String(scheduledAtART.getUTCHours()).padStart(2, "0");
+  const artMM = String(scheduledAtART.getUTCMinutes()).padStart(2, "0");
+  const timeStr = `${artHH}:${artMM}`; // HH:MM en ART
 
   const schedule = await db
     .select()
@@ -206,7 +212,7 @@ export async function createAppointment(
   if (schedule.length === 0) {
     throw new AppointmentError(
       "OUTSIDE_SCHEDULE",
-      "Veterinarian does not work on this day"
+      "El veterinario no atiende este día"
     );
   }
 
@@ -214,7 +220,7 @@ export async function createAppointment(
   if (timeStr < slot.startTime || timeStr >= slot.endTime) {
     throw new AppointmentError(
       "OUTSIDE_HOURS",
-      `Veterinarian works ${slot.startTime}–${slot.endTime} on this day`
+      `El veterinario atiende de ${slot.startTime} a ${slot.endTime} este día`
     );
   }
 
@@ -235,7 +241,7 @@ export async function createAppointment(
     .limit(1);
 
   if (conflicting.length > 0) {
-    throw new AppointmentError("SLOT_TAKEN", "This time slot is already booked");
+    throw new AppointmentError("SLOT_TAKEN", "Este horario ya está reservado. Elegí otro.");
   }
 
   // 5. Create appointment
@@ -353,6 +359,29 @@ export async function rescheduleAppointment(
 // ---------------------------------------------------------------------------
 
 export async function getAvailableSlots(vetProfileId: string, date: Date) {
+  // Los horarios del veterinario están en hora Argentina (UTC-3, sin DST).
+  // Todas las comparaciones de hora y día-de-semana deben hacerse en ART.
+  const ART_OFFSET_MS = -3 * 60 * 60 * 1000; // UTC-3
+
+  // Obtener la fecha en ART para calcular el día de semana correcto.
+  // `date` llega como midnight UTC del día elegido (ej: "2024-06-01T00:00:00Z").
+  // En ART eso corresponde al día anterior a las 21hs → usamos mediodia UTC del
+  // día para que caiga correctamente en ART (mediodia UTC = 9am ART = mismo día).
+  const dateNoonUTC = new Date(date.getTime() + 12 * 60 * 60 * 1000);
+  const dateInART = new Date(dateNoonUTC.getTime() + ART_OFFSET_MS);
+  const dayOfWeek = dateInART.getUTCDay(); // día de semana en ART
+
+  // Límites del día en ART expresados en UTC:
+  // ART 00:00 = UTC 03:00, ART 23:59:59 = UTC siguiente día 02:59:59
+  const [y, m, d] = [
+    dateInART.getUTCFullYear(),
+    dateInART.getUTCMonth(),
+    dateInART.getUTCDate(),
+  ];
+  // midnight ART del día en UTC
+  const dayStartART = new Date(Date.UTC(y, m, d, 3, 0, 0, 0)); // 00:00 ART = 03:00 UTC
+  const dayEndART = new Date(Date.UTC(y, m, d + 1, 2, 59, 59, 999)); // 23:59:59 ART = siguiente 02:59:59 UTC
+
   // Get vet userId
   const vetProfile = await db
     .select({ userId: veterinarianProfiles.userId })
@@ -362,8 +391,6 @@ export async function getAvailableSlots(vetProfileId: string, date: Date) {
 
   if (vetProfile.length === 0) return null;
   const vetUserId = vetProfile[0].userId;
-
-  const dayOfWeek = date.getDay();
 
   // Get schedule for this day
   const scheduleRows = await db
@@ -379,13 +406,7 @@ export async function getAvailableSlots(vetProfileId: string, date: Date) {
 
   if (scheduleRows.length === 0) return { slots: [] };
 
-  // Day boundaries in UTC
-  const dayStart = new Date(date);
-  dayStart.setHours(0, 0, 0, 0);
-  const dayEnd = new Date(date);
-  dayEnd.setHours(23, 59, 59, 999);
-
-  // Get existing appointments for the vet on this date
+  // Get existing appointments for the vet on this date (en rango ART del día)
   const existing = await db
     .select({
       scheduledAt: appointments.scheduledAt,
@@ -396,37 +417,43 @@ export async function getAvailableSlots(vetProfileId: string, date: Date) {
       and(
         eq(appointments.vetProfileId, vetProfileId),
         ne(appointments.status, "cancelled"),
-        gte(appointments.scheduledAt, dayStart),
-        lt(appointments.scheduledAt, dayEnd)
+        gte(appointments.scheduledAt, dayStartART),
+        lt(appointments.scheduledAt, dayEndART)
       )
     );
 
-  // Generate 30-min slots from schedule
+  // Generate 30-min slots from schedule.
+  // El schedule tiene horas ART ("08:00", "18:00").
+  // Construimos cada slot como UTC timestamp: hora ART + 3h = UTC.
   const slots: { time: string; available: boolean }[] = [];
+  const now = new Date();
 
   for (const schedSlot of scheduleRows) {
     const [startH, startM] = schedSlot.startTime.split(":").map(Number);
     const [endH, endM] = schedSlot.endTime.split(":").map(Number);
 
-    let cursor = startH * 60 + startM;
+    let cursor = startH * 60 + startM; // minutos desde medianoche ART
     const end = endH * 60 + endM;
 
     while (cursor + 30 <= end) {
-      const slotStart = new Date(date);
-      slotStart.setHours(Math.floor(cursor / 60), cursor % 60, 0, 0);
-      const slotEnd = new Date(slotStart.getTime() + 30 * 60 * 1000);
+      const artH = Math.floor(cursor / 60);
+      const artMin = cursor % 60;
 
-      // Check if any existing appointment overlaps
+      // Slot start en UTC: día ART 00:00 UTC (03:00) + offset ART de la hora
+      const slotStartUTC = new Date(Date.UTC(y, m, d, artH + 3, artMin, 0, 0));
+      const slotEndUTC = new Date(slotStartUTC.getTime() + 30 * 60 * 1000);
+
+      // Check overlap con turnos existentes (todos en UTC)
       const isBooked = existing.some((appt) => {
         const apptStart = new Date(appt.scheduledAt);
         const apptEnd = new Date(
           apptStart.getTime() + appt.durationMinutes * 60 * 1000
         );
-        return apptStart < slotEnd && apptEnd > slotStart;
+        return apptStart < slotEndUTC && apptEnd > slotStartUTC;
       });
 
-      const timeStr = `${String(Math.floor(cursor / 60)).padStart(2, "0")}:${String(cursor % 60).padStart(2, "0")}`;
-      slots.push({ time: timeStr, available: !isBooked && slotStart > new Date() });
+      const timeStr = `${String(artH).padStart(2, "0")}:${String(artMin).padStart(2, "0")}`;
+      slots.push({ time: timeStr, available: !isBooked && slotStartUTC > now });
       cursor += 30;
     }
   }

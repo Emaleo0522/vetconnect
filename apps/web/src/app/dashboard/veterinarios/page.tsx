@@ -96,9 +96,12 @@ export default function VeterinariesPage() {
   }, []);
 
   useEffect(() => {
+    // Forzar revalidación al montar (evita que Next.js Router Cache sirva
+    // la página sin re-ejecutar los effects al volver con back)
+    router.refresh();
     fetchVets();
     fetchFavorites();
-  }, [fetchVets, fetchFavorites]);
+  }, [fetchVets, fetchFavorites, router]);
 
   // Debounce search — 300ms (rate limit awareness per security-spec)
   useEffect(() => {

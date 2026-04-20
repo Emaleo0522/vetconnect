@@ -56,7 +56,7 @@ appointmentsRouter.get("/api/appointments", authGuard, async (c) => {
         success: false,
         error: {
           code: "VALIDATION_ERROR",
-          message: "Invalid query parameters",
+          message: "Parámetros de consulta inválidos",
           details: parsed.error.flatten().fieldErrors,
         },
       },
@@ -89,7 +89,7 @@ appointmentsRouter.post("/api/appointments", authGuard, async (c) => {
         success: false,
         error: {
           code: "VALIDATION_ERROR",
-          message: "Invalid input",
+          message: "Datos inválidos. Revisá los campos.",
           details: parsed.error.flatten().fieldErrors,
         },
       },
@@ -136,14 +136,14 @@ appointmentsRouter.get("/api/appointments/:id", authGuard, async (c) => {
   const appt = await getAppointmentById(id);
   if (!appt) {
     return c.json(
-      { success: false, error: { code: "NOT_FOUND", message: "Appointment not found" } },
+      { success: false, error: { code: "NOT_FOUND", message: "Turno no encontrado" } },
       404
     );
   }
 
   if (appt.userId !== user.id && user.role !== "admin") {
     return c.json(
-      { success: false, error: { code: "FORBIDDEN", message: "Access denied" } },
+      { success: false, error: { code: "FORBIDDEN", message: "Sin acceso a este recurso" } },
       403
     );
   }
@@ -192,7 +192,7 @@ appointmentsRouter.patch("/api/appointments/:id/reschedule", authGuard, async (c
         success: false,
         error: {
           code: "VALIDATION_ERROR",
-          message: "Invalid input",
+          message: "Datos inválidos. Revisá los campos.",
           details: parsed.error.flatten().fieldErrors,
         },
       },
@@ -235,7 +235,7 @@ appointmentsRouter.get("/api/vets/:id/slots", async (c) => {
         success: false,
         error: {
           code: "VALIDATION_ERROR",
-          message: "Query param 'date' is required in YYYY-MM-DD format",
+          message: "El parámetro 'date' es requerido en formato YYYY-MM-DD",
         },
       },
       422
@@ -247,7 +247,7 @@ appointmentsRouter.get("/api/vets/:id/slots", async (c) => {
     return c.json(
       {
         success: false,
-        error: { code: "VALIDATION_ERROR", message: "Invalid date" },
+        error: { code: "VALIDATION_ERROR", message: "Fecha inválida" },
       },
       422
     );
@@ -257,7 +257,7 @@ appointmentsRouter.get("/api/vets/:id/slots", async (c) => {
 
   if (!result) {
     return c.json(
-      { success: false, error: { code: "NOT_FOUND", message: "Veterinarian not found" } },
+      { success: false, error: { code: "NOT_FOUND", message: "Veterinario no encontrado" } },
       404
     );
   }
