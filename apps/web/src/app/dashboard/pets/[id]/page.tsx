@@ -744,24 +744,24 @@ export default function PetDetailPage({
 
       {/* Tabs editoriales */}
       <Tabs defaultValue="info">
-        <TabsList variant="line" className="w-full overflow-x-auto scrollbar-none flex-nowrap pl-1 sm:pl-0">
-          <TabsTrigger value="info" className="gap-1.5 shrink-0">
+        <TabsList variant="line" className="w-full flex-wrap gap-x-2 gap-y-1 pl-1 sm:pl-0">
+          <TabsTrigger value="info" className="gap-1.5">
             <Info className="h-3.5 w-3.5" aria-hidden="true" />
             Información
           </TabsTrigger>
-          <TabsTrigger value="history" className="gap-1.5 shrink-0">
+          <TabsTrigger value="history" className="gap-1.5">
             <FileText className="h-3.5 w-3.5" aria-hidden="true" />
             Historial
           </TabsTrigger>
-          <TabsTrigger value="vaccines" className="gap-1.5 shrink-0">
+          <TabsTrigger value="vaccines" className="gap-1.5">
             <Syringe className="h-3.5 w-3.5" aria-hidden="true" />
             Vacunas
           </TabsTrigger>
-          <TabsTrigger value="documents" className="gap-1.5 shrink-0">
+          <TabsTrigger value="documents" className="gap-1.5">
             <FileText className="h-3.5 w-3.5" aria-hidden="true" />
             Documentos
           </TabsTrigger>
-          <TabsTrigger value="qr" className="gap-1.5 shrink-0">
+          <TabsTrigger value="qr" className="gap-1.5">
             <QrCode className="h-3.5 w-3.5" aria-hidden="true" />
             QR
           </TabsTrigger>

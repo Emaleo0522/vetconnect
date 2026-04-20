@@ -30,10 +30,13 @@ export function MobileNav() {
       >
         <SheetTitle className="sr-only">Menu de navegacion</SheetTitle>
 
-        {/* Logo */}
-        <div
+        {/* Logo — clickeable, navega a /dashboard */}
+        <Link
+          href="/dashboard"
+          onClick={() => setOpen(false)}
           className="flex h-16 items-center gap-3 px-6"
           style={{ borderBottom: "1px solid rgb(31 60 46 / 0.35)" }}
+          aria-label="Ir al inicio"
         >
           <Image
             src="/logo/logo-monogram-light.svg"
@@ -48,14 +51,14 @@ export function MobileNav() {
           >
             VetConnect
           </span>
-        </div>
+        </Link>
 
         {/* Nav */}
         <nav className="flex flex-col gap-1 p-3 pt-4" aria-label="Menu principal mobile">
           {NAV_ITEMS.map((item) => {
-            const isActive =
-              pathname === item.href ||
-              (pathname.startsWith(item.href) && item.href !== "/dashboard");
+            const isActive = item.exact
+              ? pathname === item.href
+              : pathname === item.href || pathname.startsWith(item.href + "/");
 
             return (
               <Link

@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import {
+  Home,
   PawPrint,
   MapPin,
   Stethoscope,
@@ -15,8 +16,9 @@ import {
   Bell,
 } from "lucide-react";
 
-// Nav items — 6 módulos D.1–D.6 (rutas finales)
+// Nav items — Inicio + 6 módulos D.1–D.6 (rutas finales)
 export const NAV_ITEMS = [
+  { href: "/dashboard", label: "Inicio", icon: Home, exact: true },
   { href: "/dashboard/pets", label: "Mi mascota", icon: PawPrint },
   { href: "/dashboard/perdidos", label: "Animales perdidos", icon: MapPin },
   { href: "/dashboard/veterinarios", label: "Veterinarios", icon: Stethoscope },
@@ -49,10 +51,12 @@ export function Sidebar() {
       style={{ width: "var(--sidebar-width)", background: "var(--forest-900)" }}
       aria-label="Navegación principal"
     >
-      {/* Logo */}
-      <div
+      {/* Logo — clickeable, navega a /dashboard */}
+      <Link
+        href="/dashboard"
         className="flex h-16 shrink-0 items-center gap-3 px-6"
         style={{ borderBottom: "1px solid rgb(var(--forest-900-rgb, 31 60 46) / 0.35)" }}
+        aria-label="Ir al inicio"
       >
         <Image
           src="/logo/logo-monogram-light.svg"
@@ -68,14 +72,16 @@ export function Sidebar() {
         >
           VetConnect
         </span>
-      </div>
+      </Link>
 
       {/* Navigation */}
       <nav className="flex flex-1 flex-col gap-1 p-3 pt-4" aria-label="Menu principal">
         {NAV_ITEMS.map((item) => {
-          const isActive =
-            pathname === item.href ||
-            (pathname.startsWith(item.href) && item.href !== "/dashboard");
+          // Para items con exact:true (ej: Inicio → /dashboard), solo activo si coincide exactamente.
+          // Para el resto, activo si la ruta actual comienza con el href del item.
+          const isActive = item.exact
+            ? pathname === item.href
+            : pathname === item.href || pathname.startsWith(item.href + "/");
 
           return (
             <Link

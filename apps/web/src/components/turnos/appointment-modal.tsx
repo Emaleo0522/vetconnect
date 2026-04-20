@@ -123,11 +123,12 @@ export function AppointmentModal({
     setSubmitError(null);
 
     try {
-      // Construir ISO con offset explícito de Argentina (UTC-3, sin DST).
-      // Formato: "YYYY-MM-DDTHH:MM:00-03:00" → el servidor recibe UTC correcto.
-      // NO usar new Date(str) sin timezone porque el comportamiento varía por
-      // navegador/entorno (local vs UTC). El offset explícito es determinístico.
-      const scheduledAt = `${selectedDate}T${selectedSlot}:00-03:00`;
+      // Convertir hora local Argentina (UTC-3) a UTC puro con sufijo Z.
+      // El backend usa z.string().datetime() que solo acepta ISO 8601 con Z.
+      // Construir con offset -03:00 para parsear correctamente y luego
+      // convertir a UTC → evita ambigüedad de entorno local del navegador.
+      const localMs = new Date(`${selectedDate}T${selectedSlot}:00-03:00`).getTime();
+      const scheduledAt = new Date(localMs).toISOString(); // siempre devuelve Z UTC
       const result = await api.post<{ id: string }>("/api/appointments", {
         vetProfileId: vetId,
         petId: selectedPetId,

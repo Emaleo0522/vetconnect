@@ -24,14 +24,16 @@ const appointmentsRouter = new Hono<{ Variables: AuthVariables }>();
 const createAppointmentSchema = z.object({
   petId: z.string().min(1),
   vetProfileId: z.string().min(1),
-  scheduledAt: z.string().datetime({ message: "scheduledAt must be an ISO 8601 datetime" }),
+  // offset: true → acepta UTC con Z ("...Z") y con offset explícito ("...-03:00").
+  // El frontend envía UTC con Z; esta opción da robustez extra.
+  scheduledAt: z.string().datetime({ offset: true, message: "scheduledAt must be an ISO 8601 datetime" }),
   durationMinutes: z.number().int().min(15).max(120).default(30).optional(),
   reason: z.string().max(500).optional(),
   notes: z.string().max(1000).optional(),
 });
 
 const rescheduleSchema = z.object({
-  scheduledAt: z.string().datetime({ message: "scheduledAt must be an ISO 8601 datetime" }),
+  scheduledAt: z.string().datetime({ offset: true, message: "scheduledAt must be an ISO 8601 datetime" }),
   reason: z.string().max(500).optional(),
 });
 

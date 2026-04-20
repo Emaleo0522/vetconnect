@@ -96,12 +96,23 @@ export default function VeterinariesPage() {
   }, []);
 
   useEffect(() => {
-    // Forzar revalidación al montar (evita que Next.js Router Cache sirva
-    // la página sin re-ejecutar los effects al volver con back)
-    router.refresh();
     fetchVets();
     fetchFavorites();
-  }, [fetchVets, fetchFavorites, router]);
+
+    // Cuando el usuario vuelve con el botón "atrás" el Router Cache de Next.js
+    // restaura la página sin re-montar el componente ni re-ejecutar effects.
+    // El evento 'pageshow' (incluyendo persisted=true de bfcache) garantiza
+    // que siempre se refresquen los datos, lo que previene que el botón
+    // Agendar desaparezca por un estado de auth/loading desincronizado.
+    function handlePageShow(e: PageTransitionEvent) {
+      if (e.persisted) {
+        fetchVets();
+        fetchFavorites();
+      }
+    }
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, [fetchVets, fetchFavorites]);
 
   // Debounce search — 300ms (rate limit awareness per security-spec)
   useEffect(() => {
